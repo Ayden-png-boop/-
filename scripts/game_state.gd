@@ -37,6 +37,8 @@ var sfx_volume: float = 0.7
 var voice_on: bool = true            ## 剧情配音开关
 var voice_volume: float = 0.9
 var typing_on: bool = true           ## 逐字显示时的键盘敲击音
+var video_on: bool = true            ## CG 动画背景开关
+var video_volume: float = 0.55       ## CG 自带环境音的音量
 var auto_advance: bool = false
 var auto_delay: float = 2.2
 var seen_prologue: bool = false
@@ -400,6 +402,8 @@ func _load_settings() -> void:
 	voice_on = bool(cfg.get_value("audio", "voice_on", voice_on))
 	voice_volume = float(cfg.get_value("audio", "voice", voice_volume))
 	typing_on = bool(cfg.get_value("audio", "typing_on", typing_on))
+	video_on = bool(cfg.get_value("video", "on", video_on))
+	video_volume = float(cfg.get_value("video", "volume", video_volume))
 	auto_advance = bool(cfg.get_value("text", "auto_advance", auto_advance))
 	auto_delay = float(cfg.get_value("text", "auto_delay", auto_delay))
 	seen_prologue = bool(cfg.get_value("progress", "seen_prologue", seen_prologue))
@@ -419,6 +423,8 @@ func save_settings() -> void:
 	cfg.set_value("audio", "voice", voice_volume)
 	cfg.set_value("audio", "voice_on", voice_on)
 	cfg.set_value("audio", "typing_on", typing_on)
+	cfg.set_value("video", "on", video_on)
+	cfg.set_value("video", "volume", video_volume)
 	cfg.set_value("progress", "seen_prologue", seen_prologue)
 	cfg.set_value("display", "fullscreen", bool(get_meta("fullscreen", false)))
 	cfg.save(SETTINGS_PATH)

@@ -10,6 +10,10 @@ extends Control
 const BG_DIR := "res://assets/bg/"
 const BG_EXTS := [".png", ".jpg", ".jpeg", ".webp"]
 
+## CG 动画目录与视频画幅（所有转码片段统一 854x480 / 16:9）
+const VIDEO_DIR := "res://assets/video/"
+const VIDEO_SIZE := Vector2(854, 480)
+
 ## 每个场景的画面配方
 static var PRESETS := {
 	"title": {
@@ -71,6 +75,7 @@ static var PRESETS := {
 }
 
 var scene_key: String = "ch1"
+var video_key: String = ""            ## 当前播放的 CG 片段 key（"" = 纯静态背景）
 var shake_offset: Vector2 = Vector2.ZERO
 var dim: float = 0.0                  ## 额外压暗（过场 / 弹窗时用）
 
@@ -80,19 +85,29 @@ var _snow: Array = []
 var _t: float = 0.0
 var _flash_col: Color = Color(1, 1, 1, 0)
 var _rng := RandomNumberGenerator.new()
+var _player: VideoStreamPlayer = null
 
 static var _tex_cache: Dictionary = {}
 static var _grad_cache: Dictionary = {}
+static var _video_cache: Dictionary = {}
 
 
 func _init() -> void:
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	clip_contents = true      ## 视频按 cover 布局会溢出边界，需要裁掉
 
 
 func _ready() -> void:
 	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	set_scene(scene_key)
+	if video_key != "":
+		set_video(video_key)
+
+
+func _exit_tree() -> void:
+	if _player != null:
+		_player.stop()
 
 
 func set_scene(key: String) -> void:
@@ -115,6 +130,109 @@ func _load_texture(key: String) -> Texture2D:
 				return t
 	_tex_cache[key] = null
 	return null
+
+
+# ===========================================================================
+# CG 动画层
+# ===========================================================================
+## 切换背景动画。传 "" 关闭动画回到静态插画。
+## 同一个 key 不会重播——连续几句话共享同一个镜头时，画面是连续的。
+func set_video(key: String) -> void:
+	if key == video_key and _video_playing():
+		return
+	video_key = key
+	_ensure_player()
+	if key == "":
+		_player.stop()
+		_player.visible = false
+		queue_redraw()
+		return
+	var stream: VideoStream = _load_video(key)
+	if stream == null:
+		push_warning("BgArt: 找不到 CG 片段 %s，回退静态背景" % key)
+		_player.stop()
+		_player.visible = false
+		queue_redraw()
+		return
+	_player.stream = stream
+	_player.visible = true
+	_apply_video_volume()
+	_layout_video()
+	_player.play()
+	queue_redraw()
+
+
+## 关闭/打开视频（设置项切换用）。关闭时保留当前镜头 key，重开会继续播。
+func set_video_enabled(on: bool) -> void:
+	if on:
+		if video_key != "" and not _video_playing():
+			var k := video_key
+			video_key = ""
+			set_video(k)
+	else:
+		if _player != null:
+			_player.stop()
+			_player.visible = false
+			queue_redraw()
+
+
+func set_video_volume(v: float) -> void:
+	if _player != null:
+		_player.volume_db = linear_to_db(clampf(v, 0.0001, 1.0))
+
+
+func _video_playing() -> bool:
+	return _player != null and _player.visible and _player.is_playing()
+
+
+func _ensure_player() -> void:
+	if _player != null:
+		return
+	_player = VideoStreamPlayer.new()
+	_player.name = "VideoLayer"
+	# z_index = -1：让视频画在 BgArt 自己的 _draw() 之下，
+	# 这样雪花、暗角、压暗层仍然盖在 CG 上面，文字依旧可读。
+	_player.z_index = -1
+	_player.loop = true
+	_player.buffering_msec = 800
+	_player.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_player.visible = false
+	add_child(_player)
+
+
+func _load_video(key: String) -> VideoStream:
+	if _video_cache.has(key):
+		return _video_cache[key]
+	var p := VIDEO_DIR + key + ".ogv"
+	var s: VideoStream = null
+	if ResourceLoader.exists(p):
+		var r: Resource = load(p)
+		if r is VideoStream:
+			s = r
+	_video_cache[key] = s
+	return s
+
+
+## cover 布局：等比铺满，多余部分被 clip_contents 裁掉
+func _layout_video() -> void:
+	if _player == null:
+		return
+	var vs := _player.get_combined_minimum_size()
+	if vs.x < 2.0 or vs.y < 2.0:
+		vs = VIDEO_SIZE
+	var sc := maxf(size.x / vs.x, size.y / vs.y)
+	_player.size = vs * sc
+	_player.position = (size - _player.size) * 0.5
+
+
+func _apply_video_volume() -> void:
+	if _player == null:
+		return
+	var gs := get_node_or_null("/root/GameState")
+	var vol := 0.55
+	if gs != null:
+		vol = float(gs.video_volume)
+	_player.volume_db = linear_to_db(clampf(vol, 0.0001, 1.0)) if vol > 0.001 else -80.0
 
 
 func _rebuild_particles() -> void:
@@ -154,6 +272,11 @@ func _process(delta: float) -> void:
 		elif float(p["x"]) < -0.06:
 			p["x"] = 1.04
 	shake_offset = shake_offset.lerp(Vector2.ZERO, clampf(delta * 9.0, 0.0, 1.0))
+	# 窗口尺寸变化时保持视频 cover 铺满
+	if _video_playing() and _player != null:
+		var want := (Vector2(VIDEO_SIZE) * maxf(size.x / VIDEO_SIZE.x, size.y / VIDEO_SIZE.y))
+		if (_player.size - want).length() > 1.0:
+			_layout_video()
 	queue_redraw()
 	# H 只是为了让编译器知道 size 参与了布局，避免未使用告警
 	if H < 0.0:
@@ -169,15 +292,18 @@ func _draw() -> void:
 		return
 	draw_set_transform(shake_offset, 0.0, Vector2.ONE)
 
-	if _tex != null:
+	if _tex != null and not _video_playing():
 		_draw_cover(_tex, R)
 		# 真实照片底色需要压暗一层，保证前景 UI 文本的可读性
 		var tex_dim := float(_preset.get("tex_dim", 0.0))
 		if tex_dim > 0.001:
 			draw_rect(R, Color(0.0, 0.0, 0.0, clampf(tex_dim, 0.0, 0.95)))
-	else:
+	elif not _video_playing():
 		_draw_sky(R)
 		_draw_layers(R)
+	elif _tex == null:
+		# 视频底下垫一层深色，避免首帧未就绪时露出天空色
+		draw_rect(R, GameDefs.C_INK)
 
 	if dim > 0.001:
 		draw_rect(R, Color(0.0, 0.0, 0.0, clampf(dim, 0.0, 0.95)))

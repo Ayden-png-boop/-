@@ -11,10 +11,12 @@ var _auto_row: HBoxContainer
 var _bgm_row: HBoxContainer
 var _sfx_row: HBoxContainer
 var _voice_row: HBoxContainer
+var _video_row: HBoxContainer
 var _fs_btn: Button
 var _auto_toggle: Button
 var _voice_toggle: Button
 var _type_toggle: Button
+var _video_toggle: Button
 var _save_note: Label
 var _confirm_card: Control
 
@@ -124,6 +126,15 @@ func _build() -> void:
 				g.save_settings())
 	v.add_child(_voice_row)
 
+	var vvol := float(gs.video_volume) if gs != null else 0.55
+	_video_row = _slider_row("动画音量", "", 0.0, 1.0, 0.05, vvol,
+		func(val: float) -> void:
+			var g := get_node_or_null("/root/GameState")
+			if g != null:
+				g.video_volume = val
+				g.save_settings())
+	v.add_child(_video_row)
+
 	v.add_child(UiKit.hsep(GameDefs.C_LINE, 1))
 
 	# 开关行
@@ -153,6 +164,10 @@ func _build() -> void:
 	_type_toggle.custom_minimum_size = Vector2(220, 46)
 	_type_toggle.pressed.connect(_toggle_typing)
 	toggles2.add_child(_type_toggle)
+	_video_toggle = UiKit.button("", 18, 46)
+	_video_toggle.custom_minimum_size = Vector2(220, 46)
+	_video_toggle.pressed.connect(_toggle_video)
+	toggles2.add_child(_video_toggle)
 	var b_replay := UiKit.ghost_button("试听配音", 18, 46)
 	b_replay.custom_minimum_size = Vector2(180, 46)
 	b_replay.pressed.connect(_preview_voice)
@@ -164,7 +179,7 @@ func _build() -> void:
 
 	v.add_child(UiKit.spacer(4))
 	var tip := UiKit.wrapped(
-		"提示：按 F11 可在任何界面切换全屏；剧情中按 空格 / 回车 / 点击空白处 推进文本；ESC 返回主菜单。剧情文本配有中文旁白与逐字敲击音，可在此单独关闭。",
+		"提示：按 F11 可在任何界面切换全屏；剧情中按 空格 / 回车 / 点击空白处 推进文本；ESC 返回主菜单。剧情文本配有中文旁白与逐字敲击音，CG 动画背景也可在此关闭或调节音量。",
 		15, Color(0.56, 0.68, 0.78))
 	v.add_child(tip)
 
@@ -222,6 +237,8 @@ func _refresh_labels() -> void:
 		_voice_toggle.text = "剧情配音：开" if bool(gs.voice_on) else "剧情配音：关"
 	if _type_toggle != null and gs != null:
 		_type_toggle.text = "打字音效：开" if bool(gs.typing_on) else "打字音效：关"
+	if _video_toggle != null and gs != null:
+		_video_toggle.text = "CG 动画：开" if bool(gs.video_on) else "CG 动画：关"
 	if _save_note != null and gs != null:
 		if bool(gs.has_save()):
 			var cm := GameDefs.chapter_by_id(String(gs.current_chapter))
@@ -259,6 +276,18 @@ func _toggle_voice() -> void:
 		am.stop_voice()
 		if bool(gs.voice_on):
 			am.play_voice("c1_01")     # 打开时立刻给一句样本
+
+
+func _toggle_video() -> void:
+	var gs := get_node_or_null("/root/GameState")
+	if gs == null:
+		return
+	gs.video_on = not bool(gs.video_on)
+	gs.save_settings()
+	_refresh_labels()
+	var am := get_node_or_null("/root/AudioMgr")
+	if am != null:
+		am.play_sfx("confirm")
 
 
 func _toggle_typing() -> void:

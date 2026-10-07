@@ -7,7 +7,6 @@
     "based_on": "《冰川信使：斑头雁的2040创作方案》",
     "blurb": "一只能飞越珠峰的候鸟，和一场正在消失的家园。你的每一个选择，都会写进 2040 年那份冰川报告里。"
   },
-
   "codex": {
     "characters": [
       {
@@ -100,14 +99,33 @@
       }
     ],
     "facts": [
-      { "title": "25%", "label": "四十年冰川损失", "desc": "2003—2023 年，红色曲线陡升，冰川退缩速度突破临界点。" },
-      { "title": "92%", "label": "阿尔卑斯冰川预测消失率", "desc": "若温升趋势不变，2100 年前阿尔卑斯冰川将失去 92% 的体量。" },
-      { "title": "1.5℃", "label": "温升红线", "desc": "IPCC 报告：1.5℃ 温升将消灭全球 70% 的冰川。" },
-      { "title": "2070", "label": "归零预测年", "desc": "赤瞳用冰芯数据划出的红色预测线：2070 年，冰川存量归零。" },
-      { "title": "72h", "label": "格陵兰冰盖崩塌预警", "desc": "最终倒计时。人类第一次把一只鸟请上了谈判桌。" }
+      {
+        "title": "25%",
+        "label": "四十年冰川损失",
+        "desc": "2003—2023 年，红色曲线陡升，冰川退缩速度突破临界点。"
+      },
+      {
+        "title": "92%",
+        "label": "阿尔卑斯冰川预测消失率",
+        "desc": "若温升趋势不变，2100 年前阿尔卑斯冰川将失去 92% 的体量。"
+      },
+      {
+        "title": "1.5℃",
+        "label": "温升红线",
+        "desc": "IPCC 报告：1.5℃ 温升将消灭全球 70% 的冰川。"
+      },
+      {
+        "title": "2070",
+        "label": "归零预测年",
+        "desc": "赤瞳用冰芯数据划出的红色预测线：2070 年，冰川存量归零。"
+      },
+      {
+        "title": "72h",
+        "label": "格陵兰冰盖崩塌预警",
+        "desc": "最终倒计时。人类第一次把一只鸟请上了谈判桌。"
+      }
     ]
   },
-
   "chapters": [
     {
       "id": "ch1",
@@ -119,7 +137,8 @@
           "id": "c1_00",
           "type": "chapter",
           "chapter": "ch1",
-          "next": "c1_01"
+          "next": "c1_01",
+          "video": "scene1"
         },
         {
           "id": "c1_01",
@@ -127,14 +146,16 @@
           "speaker": "镜头语言",
           "fx": "shake",
           "text": "远景：镜头以 45 度角俯拍珠峰北坡冰川，晨光在冰棱上折射出冷冽的蓝调。突然，一声如雷的冰裂声撕裂寂静——冰川表面瞬间迸开蛛网状的裂痕，融水像溃脓的伤口般喷涌而出。",
-          "next": "c1_02"
+          "next": "c1_02",
+          "video": "scene1"
         },
         {
           "id": "c1_02",
           "type": "narration",
           "speaker": "环境细节",
           "text": "冰裂缝中升腾着诡异的白色雾气。飘落的冰晶在阳光下形成微型彩虹。而更远处，传来冰川坍塌的闷响回声——像是什么东西在地底翻身。",
-          "next": "c1_03"
+          "next": "c1_03",
+          "video": "scene4"
         },
         {
           "id": "c1_03",
@@ -143,7 +164,8 @@
           "portrait": "xueyi",
           "fx": "shake",
           "text": "这条裂缝……去年还不存在。（翎羽剧烈震颤，瞳孔收缩）是那些钢铁秃鹫的味道！",
-          "next": "c1_04"
+          "next": "c1_04",
+          "video": "scene11a"
         },
         {
           "id": "c1_04",
@@ -157,7 +179,8 @@
               "对比动画：1980 年冰层模拟图与当前叠加，厚度差异触目惊心。",
               "系统判定：珠峰北坡冰川已进入不可逆退缩区间。"
             ]
-          }
+          },
+          "video": "scene8"
         },
         {
           "id": "c1_05",
@@ -171,9 +194,16 @@
               "tag": "选项1",
               "hint": "雪翼猛然收拢羽翼，像银色匕首刺向裂缝。湍流中，冰晶在羽毛上凝结成危险的铠甲。",
               "effects": {
-                "stats": { "radical": 10, "stamina": -12 },
-                "evidence": ["采矿照片"],
-                "flags": { "dived": true },
+                "stats": {
+                  "radical": 10,
+                  "stamina": -12
+                },
+                "evidence": [
+                  "采矿照片"
+                ],
+                "flags": {
+                  "dived": true
+                },
                 "note": "你拍下了裂缝底部的东西"
               },
               "next": "c1_06"
@@ -184,50 +214,61 @@
               "hint": "雁群紧急变换为箭矢阵型，但突然被粉红色的湿热气团吞没，能见度瞬间降至 3 米。",
               "risk": "因新出现的热浪走廊，未来迁徙将多消耗 18% 能量储备。",
               "effects": {
-                "stats": { "stamina": -20, "population": -5, "coop": 5 },
-                "flags": { "heat_corridor": true },
+                "stats": {
+                  "stamina": -20,
+                  "population": -5,
+                  "coop": 5
+                },
+                "flags": {
+                  "heat_corridor": true
+                },
                 "note": "解锁航线：窒息走廊"
               },
               "next": "c1_07"
             }
-          ]
+          ],
+          "video": "scene3a"
         },
         {
           "id": "c1_06",
           "type": "narration",
           "speaker": "发现",
           "text": "裂缝底部闪烁着诡异的蓝光——三台巨型金刚石采矿机正在作业，液压钻头喷出黑色油雾。你在油雾里按下了快门。",
-          "next": "c1_08"
+          "next": "c1_08",
+          "video": "scene3a"
         },
         {
           "id": "c1_07",
           "type": "narration",
           "speaker": "代价",
           "text": "粉色热浪像一堵墙。雁群冲出来时，队尾少了三只老雁——它们最后的身影停在能见度边缘，再也没跟上。",
-          "next": "c1_08"
+          "next": "c1_08",
+          "video": "scene3b"
         },
         {
           "id": "c1_08",
           "type": "dialogue",
           "speaker": "雪翼",
           "text": "（落在冰脊上，喘了很久）我记得这条缝的位置。它以前只是一条线。",
-          "next": "c1_09"
+          "next": "c1_09",
+          "video": "scene4"
         },
         {
           "id": "c1_09",
           "type": "narration",
           "text": "夕阳把冰川染成血一样的橙。远处，一面经幡在风里翻卷——那是动物议会召集的信号。今晚，所有的族群都要去。",
-          "next": "c1_10"
+          "next": "c1_10",
+          "video": "scene5a"
         },
         {
           "id": "c1_10",
           "type": "chapter",
           "chapter": "ch2",
-          "next": "c2_01"
+          "next": "c2_01",
+          "video": "scene5b"
         }
       ]
     },
-
     {
       "id": "ch2",
       "index": 2,
@@ -238,14 +279,16 @@
           "id": "c2_01",
           "type": "narration",
           "text": "破碎的经幡在寒风中猎猎作响，月光透过残垣断壁，在废墟上投下斑驳的阴影。",
-          "next": "c2_02"
+          "next": "c2_02",
+          "video": "scene5a"
         },
         {
           "id": "c2_02",
           "type": "narration",
           "fx": "flashice",
           "text": "冰芯样本被赤瞳的爪子深深插入经幡柱，瞬间投射出一幅全息影像——1980 年的冰川如银甲覆盖山脊，而 2023 年的影像却已千疮百孔。",
-          "next": "c2_03"
+          "next": "c2_03",
+          "video": "scene8"
         },
         {
           "id": "c2_03",
@@ -253,7 +296,8 @@
           "speaker": "雪豹 · 冰刃",
           "portrait": "bingren",
           "text": "（尾巴焦躁地拍打着地面，尾巴尖的毛发因愤怒微微炸开）那些矿工昨晚又炸掉了东侧冰舌！三公里，一整片，说没就没了。",
-          "next": "c2_04"
+          "next": "c2_04",
+          "video": "scene6a"
         },
         {
           "id": "c2_04",
@@ -261,7 +305,8 @@
           "speaker": "牦牛 · 震地",
           "portrait": "zhendi",
           "text": "（青铜鼻环在月光下泛着冷光，上面刻着的藏文「人兽和平」显得格外讽刺）我小的时候，那道冰舌要走两天才能绕过去。",
-          "next": "c2_05"
+          "next": "c2_05",
+          "video": "scene6b"
         },
         {
           "id": "c2_05",
@@ -269,7 +314,8 @@
           "speaker": "金雕 · 赤瞳",
           "portrait": "chitong",
           "text": "40 年，25% 的冰川消失了。（尾巴一甩，全息数据闪烁）再这样下去，我们的后代连雪都看不到了。",
-          "next": "c2_06"
+          "next": "c2_06",
+          "video": "scene8"
         },
         {
           "id": "c2_06",
@@ -283,7 +329,8 @@
               "2070 年，冰川存量归零。",
               "「这不是预言，」赤瞳说，「这是账单。」"
             ]
-          }
+          },
+          "video": "scene8"
         },
         {
           "id": "c2_07",
@@ -298,8 +345,13 @@
               "hint": "指挥信天翁群堵塞机场，松鼠切断输电线——让人类先感到疼。",
               "risk": "可能触发人类报复性捕杀。",
               "effects": {
-                "stats": { "radical": 30, "trust": 5 },
-                "flags": { "protest_route": true },
+                "stats": {
+                  "radical": 30,
+                  "trust": 5
+                },
+                "flags": {
+                  "protest_route": true
+                },
                 "note": "解锁选项 3 的暴力路线"
               },
               "next": "c2_08"
@@ -309,26 +361,35 @@
               "tag": "选项2",
               "hint": "丽莎博士交出一台卫星追踪器，屏幕上显示着实时冰川融化热点。",
               "effects": {
-                "stats": { "coop": 20 },
-                "tech": ["卫星追踪器"],
-                "flags": { "scientist_route": true },
+                "stats": {
+                  "coop": 20
+                },
+                "tech": [
+                  "卫星追踪器"
+                ],
+                "flags": {
+                  "scientist_route": true
+                },
                 "note": "监测仪安装成功率提升"
               },
               "next": "c2_09"
             }
-          ]
+          ],
+          "video": "scene6a"
         },
         {
           "id": "c2_08",
           "type": "narration",
           "text": "第二天清晨，信天翁像雪片一样落满跑道，松鼠咬断了三座变电站的母线。人类第一次在新闻里念出了「动物」和「抗议」两个词，中间没有加引号。",
-          "next": "c2_10"
+          "next": "c2_10",
+          "video": "act_protest"
         },
         {
           "id": "c2_09",
           "type": "narration",
           "text": "卫星追踪器在你爪间亮起。屏幕上，橘红色的热点像一串烧红的针，沿着冰川一路向北。你第一次看见了自己的家变成数据的样子。",
-          "next": "c2_10"
+          "next": "c2_10",
+          "video": "act_contact"
         },
         {
           "id": "c2_10",
@@ -342,7 +403,18 @@
               "tag": "选项3",
               "hint": "关闭两座矿井，能显著降低后续冰崩的概率。",
               "risk": "失败将被巡逻犬咬伤，族群数量下降。",
-              "require": { "any": [ { "flag": "protest_route" }, { "stat": "radical", "op": ">=", "value": 40 } ] },
+              "require": {
+                "any": [
+                  {
+                    "flag": "protest_route"
+                  },
+                  {
+                    "stat": "radical",
+                    "op": ">=",
+                    "value": 40
+                  }
+                ]
+              },
               "locked_hint": "需要先选择「发动动物界抗议」，或让激进值 ≥ 40。",
               "next": "c2_qte"
             },
@@ -351,13 +423,19 @@
               "tag": "选项3",
               "hint": "雪翼用反光羽毛拼出「SOS」，吸引无人机拍摄。",
               "effects": {
-                "stats": { "coop": 15, "radical": 5 },
-                "flags": { "peaceful_route": true },
+                "stats": {
+                  "coop": 15,
+                  "radical": 5
+                },
+                "flags": {
+                  "peaceful_route": true
+                },
                 "note": "后续人类选项的妥协概率 +15%"
               },
               "next": "c2_13"
             }
-          ]
+          ],
+          "video": "scene3b"
         },
         {
           "id": "c2_qte",
@@ -372,26 +450,38 @@
             "fail_next": "c2_12",
             "success": {
               "effects": {
-                "stats": { "radical": 10, "glacier": 4 },
-                "flags": { "qte_success": true },
+                "stats": {
+                  "radical": 10,
+                  "glacier": 4
+                },
+                "flags": {
+                  "qte_success": true
+                },
                 "note": "关闭 2 座矿井，大幅降低冰崩概率"
               }
             },
             "fail": {
               "effects": {
-                "stats": { "population": -10, "stamina": -10 },
-                "flags": { "qte_failed": true },
+                "stats": {
+                  "population": -10,
+                  "stamina": -10
+                },
+                "flags": {
+                  "qte_failed": true
+                },
                 "note": "巡逻犬咬伤雁群"
               }
             }
-          }
+          },
+          "video": "scene3a"
         },
         {
           "id": "c2_11",
           "type": "narration",
           "speaker": "成功",
           "text": "第三下砸下去的时候，焊缝裂了。液压泵像一条被踩住的蛇，喷出白色的压力雾。两座矿井在黎明前熄了灯。",
-          "next": "c2_14"
+          "next": "c2_14",
+          "video": "scene3a"
         },
         {
           "id": "c2_12",
@@ -399,13 +489,15 @@
           "speaker": "失败",
           "fx": "flashred",
           "text": "探照灯亮起的前一秒，你听见了狗吠。雁群散开时掉了队，冰面上的血很快被新雪盖住——像什么都没发生过。",
-          "next": "c2_14"
+          "next": "c2_14",
+          "video": "scene13a"
         },
         {
           "id": "c2_13",
           "type": "narration",
           "text": "雪翼张开双翼，反光羽毛在探照灯下拼出三个字母：SOS。无人机拍下的照片在四十分钟内登上了热搜第一。",
-          "next": "c2_13b"
+          "next": "c2_13b",
+          "video": "scene12c"
         },
         {
           "id": "c2_13b",
@@ -419,24 +511,26 @@
               "舆论效果：后续人类选项的妥协概率 +15%。",
               "评论区第一条：「它们不会写字，但它们在说人话。」"
             ]
-          }
+          },
+          "video": "scene8"
         },
         {
           "id": "c2_14",
           "type": "dialogue",
           "speaker": "金雕 · 赤瞳",
           "text": "议会散了。（落在你身旁，影子比你想的长）南边有人类在等我们。他们中间，有好人，也有把面包屑递给你的人。",
-          "next": "c2_15"
+          "next": "c2_15",
+          "video": "scene12b"
         },
         {
           "id": "c2_15",
           "type": "chapter",
           "chapter": "ch3",
-          "next": "c3_01"
+          "next": "c3_01",
+          "video": "scene12a"
         }
       ]
     },
-
     {
       "id": "ch3",
       "index": 3,
@@ -447,20 +541,23 @@
           "id": "c3_01",
           "type": "narration",
           "text": "镜头从高空俯冲。雁群在迪拜的摩天楼群间穿梭，玻璃幕墙反射的烈日强光形成致命的光污染带。",
-          "next": "c3_02"
+          "next": "c3_02",
+          "video": "scene7"
         },
         {
           "id": "c3_02",
           "type": "narration",
           "fx": "flashice",
           "text": "雪翼的视角：画面短暂过曝，边缘泛起刺眼的白芒。HUD 显示「视觉灵敏度 -40%」。",
-          "next": "c3_03"
+          "next": "c3_03",
+          "video": "scene7"
         },
         {
           "id": "c3_03",
           "type": "narration",
           "text": "远处，人工滑雪场的造雪机轰鸣运转，与沙漠气候形成荒诞对比。玻璃幕墙上滚动播放着能源公司的广告：「清洁能源，守护冰川！」——讽刺的是，画面角落飘过一缕黑烟。",
-          "next": "c3_04"
+          "next": "c3_04",
+          "video": "scene12a"
         },
         {
           "id": "c3_04",
@@ -468,7 +565,8 @@
           "speaker": "丽莎博士",
           "portrait": "lisa",
           "text": "（举起监测仪）阿尔卑斯冰川将在 2100 年消失 92%……帮我们安装这个！数据不能只躺在论文里，它需要一双会飞的翅膀。",
-          "next": "c3_05"
+          "next": "c3_05",
+          "video": "act_contact"
         },
         {
           "id": "c3_05",
@@ -480,10 +578,20 @@
               "tag": "选项4",
               "hint": "解锁「冰川健康度实时仪表盘」。监测数据可使后续人工降雪精度提升 25%。",
               "effects": {
-                "stats": { "coop": 20, "glacier": 5, "stamina": -10 },
-                "tech": ["冰川健康度仪表盘"],
-                "evidence": ["内部邮件"],
-                "flags": { "installed_sensor": true },
+                "stats": {
+                  "coop": 20,
+                  "glacier": 5,
+                  "stamina": -10
+                },
+                "tech": [
+                  "冰川健康度仪表盘"
+                ],
+                "evidence": [
+                  "内部邮件"
+                ],
+                "flags": {
+                  "installed_sensor": true
+                },
                 "note": "丽莎附耳递来半封内部邮件"
               },
               "next": "c3_06"
@@ -494,25 +602,34 @@
               "hint": "雁群在垃圾场吞食塑料包装，体力回升。",
               "risk": "代价：错过某国篡改气候数据的关键证据。",
               "effects": {
-                "stats": { "stamina": 20, "trust": -10, "coop": -10 },
-                "flags": { "missed_evidence": true },
+                "stats": {
+                  "stamina": 20,
+                  "trust": -10,
+                  "coop": -10
+                },
+                "flags": {
+                  "missed_evidence": true
+                },
                 "note": "错过了内部邮件"
               },
               "next": "c3_07"
             }
-          ]
+          ],
+          "video": "scene7"
         },
         {
           "id": "c3_06",
           "type": "narration",
           "text": "监测仪在冰面上旋转着立起来，仪表盘第一次亮起。阿尔卑斯冰川的健康度：31%。丽莎说，这个数字比她的论文更让她睡不着。",
-          "next": "c3_08"
+          "next": "c3_08",
+          "video": "scene10"
         },
         {
           "id": "c3_07",
           "type": "narration",
           "text": "塑料包装填饱了肚子，却什么也没留下。你后来才知道，那天下午，有一份被「调整」过的气候报告附录，从这个国家发往了另一个国家。",
-          "next": "c3_08"
+          "next": "c3_08",
+          "video": "scene8"
         },
         {
           "id": "c3_08",
@@ -520,7 +637,8 @@
           "speaker": "能源公司 CEO",
           "portrait": "ceo",
           "text": "（微笑递出面包屑）别听那些人的。我们的「清洁煤炭」能让融化减速——只要你们愿意，我可以给你们整片屋顶。",
-          "next": "c3_09"
+          "next": "c3_09",
+          "video": "scene12b"
         },
         {
           "id": "c3_09",
@@ -534,7 +652,8 @@
               "其广告语「清洁能源，守护冰川」已连续三年获得行业绿色营销奖。",
               "你爪子里那半封内部邮件，落款人的名字就在他通讯录第一行。"
             ]
-          }
+          },
+          "video": "scene8"
         },
         {
           "id": "c3_10",
@@ -545,11 +664,22 @@
               "text": "① 「揭露谎言」",
               "tag": "选项5",
               "hint": "证据链齐了。播放的将不只一段录音，而是一次股价的雪崩。",
-              "require": { "all_evidence": ["采矿照片", "内部邮件"] },
+              "require": {
+                "all_evidence": [
+                  "采矿照片",
+                  "内部邮件"
+                ]
+              },
               "locked_hint": "需要证据链：金刚石采矿机照片（第一章）+ 能源公司内部邮件（需在选项 4 中协助丽莎博士）。",
               "effects": {
-                "stats": { "coop": 15, "radical": 10, "glacier": 4 },
-                "flags": { "exposed_ceo": true },
+                "stats": {
+                  "coop": 15,
+                  "radical": 10,
+                  "glacier": 4
+                },
+                "flags": {
+                  "exposed_ceo": true
+                },
                 "note": "股价崩盘新闻直播"
               },
               "next": "c3_11"
@@ -560,41 +690,50 @@
               "hint": "获得防风巢穴材料，雁群能睡上一个安稳觉。",
               "risk": "长期代价：族群出现内部分裂，信任度 -30%。",
               "effects": {
-                "stats": { "trust": -30, "stamina": 15 },
-                "flags": { "fake_coop": true },
+                "stats": {
+                  "trust": -30,
+                  "stamina": 15
+                },
+                "flags": {
+                  "fake_coop": true
+                },
                 "note": "族群内部开始出现裂痕"
               },
               "next": "c3_12"
             }
-          ]
+          ],
+          "video": "scene8"
         },
         {
           "id": "c3_11",
           "type": "narration",
           "text": "直播信号切进去的那一刻，屏幕右下角的股价曲线像被割断的冰舌一样直坠。第二天，三港两地的报纸给了你同一个称号：「会飞的证人」。",
-          "next": "c3_13"
+          "next": "c3_13",
+          "video": "act_expose"
         },
         {
           "id": "c3_12",
           "type": "narration",
           "text": "防风巢穴很暖。但议会里开始有人低声说：她和人类吃了同一块面包。你听见了，假装没听见。",
-          "next": "c3_13"
+          "next": "c3_13",
+          "video": "scene12c"
         },
         {
           "id": "c3_13",
           "type": "narration",
           "text": "北方的风变冷了。阿尔卑斯的消息传来时，整个雁群沉默了整整一分钟——然后没有一只雁问「还去不去」。",
-          "next": "c3_14"
+          "next": "c3_14",
+          "video": "scene13a"
         },
         {
           "id": "c3_14",
           "type": "chapter",
           "chapter": "ch4",
-          "next": "c4_01"
+          "next": "c4_01",
+          "video": "scene12a"
         }
       ]
     },
-
     {
       "id": "ch4",
       "index": 4,
@@ -605,32 +744,42 @@
           "id": "c4_01",
           "type": "narration",
           "text": "雪翼的雁群掠过阿尔卑斯山脉时，看到的已不再是记忆中的那片冰原。",
-          "next": "c4_02"
+          "next": "c4_02",
+          "video": "scene10"
         },
         {
           "id": "c4_02",
           "type": "narration",
           "fx": "shake",
           "text": "巨大的冰舌正在断裂。万年凝结的蓝冰在高温下发出不堪重负的呻吟，裂缝像蛛网般在冰面上蔓延。",
-          "next": "c4_03"
+          "next": "c4_03",
+          "video": "scene1"
         },
         {
           "id": "c4_03",
           "type": "narration",
           "fx": "bigshake",
           "text": "随着一声震耳欲聋的爆裂声，半座冰崖轰然崩塌，坠入下方浑浊的融水湖中，激起十米高的黑色浪涛。",
-          "effects": { "stats": { "glacier": -8 } },
-          "next": "c4_04"
+          "effects": {
+            "stats": {
+              "glacier": -8
+            }
+          },
+          "next": "c4_04",
+          "video": "scene1"
         },
         {
           "id": "c4_04",
           "type": "narration",
           "text": "崩塌露出的冰芯断面里，嵌着一层黑色的沉积——那是四十年来人类留在冰里的账单。翻到最上面那一层，时间正好是你出生的那一年。",
           "effects": {
-            "evidence": ["冰芯污染数据"],
+            "evidence": [
+              "冰芯污染数据"
+            ],
             "note": "读到了冰里的账单"
           },
-          "next": "c4_05"
+          "next": "c4_05",
+          "video": "scene4"
         },
         {
           "id": "c4_05",
@@ -644,13 +793,15 @@
               "当前路径：2.7℃。",
               "报告第 41 页脚注写道：「本结论未包含冰盖崩塌的级联效应。」"
             ]
-          }
+          },
+          "video": "scene8"
         },
         {
           "id": "c4_06",
           "type": "narration",
           "text": "就在这时，雁群发现某国正在试验一件事：向冰川喷洒硫酸钙颗粒——人工降雪。飞机像穿针一样，在云里来回。",
-          "next": "c4_07"
+          "next": "c4_07",
+          "video": "scene7"
         },
         {
           "id": "c4_07",
@@ -663,12 +814,24 @@
               "hint": "多国将暂停实验，舆论会站在冰川这一边。",
               "risk": "代价：外交僵局。若激进值 ≥ 50，将直接引爆全球气候紧急状态。",
               "effects": {
-                "stats": { "coop": 5, "radical": 10 },
-                "flags": { "leaked_media": true },
+                "stats": {
+                  "coop": 5,
+                  "radical": 10
+                },
+                "flags": {
+                  "leaked_media": true
+                },
                 "note": "多国暂停人工降雪实验"
               },
               "branch": [
-                { "when": { "stat": "radical", "op": ">=", "value": 50 }, "next": "c4_08" }
+                {
+                  "when": {
+                    "stat": "radical",
+                    "op": ">=",
+                    "value": 50
+                  },
+                  "next": "c4_08"
+                }
               ],
               "next": "c4_09"
             },
@@ -678,14 +841,22 @@
               "hint": "解锁「大气冷凝器」科技树，让降雪落到真正需要的地方。",
               "risk": "风险：可能引发不可控的天气变异。",
               "effects": {
-                "stats": { "coop": 10, "glacier": 6 },
-                "tech": ["大气冷凝器"],
-                "flags": { "atmo_tech": true },
+                "stats": {
+                  "coop": 10,
+                  "glacier": 6
+                },
+                "tech": [
+                  "大气冷凝器"
+                ],
+                "flags": {
+                  "atmo_tech": true
+                },
                 "note": "解锁科技：大气冷凝器"
               },
               "next": "c4_10"
             }
-          ]
+          ],
+          "video": "scene7"
         },
         {
           "id": "c4_08",
@@ -694,23 +865,33 @@
           "fx": "flashred",
           "text": "消息传开的第四个小时，激进值早已漫过阈值。二十七个国家在同一分钟内拉响了气候紧急状态。这一次，人类没有等到报告写完。",
           "effects": {
-            "stats": { "glacier": 25, "coop": 10, "population": 10 },
-            "flags": { "global_plan": true, "emergency_jump": true },
+            "stats": {
+              "glacier": 25,
+              "coop": 10,
+              "population": 10
+            },
+            "flags": {
+              "global_plan": true,
+              "emergency_jump": true
+            },
             "note": "跳过中间章节，直接进入选项 16 ① 路线"
           },
-          "next": "c5_emergency_in"
+          "next": "c5_emergency_in",
+          "video": "scene8"
         },
         {
           "id": "c4_09",
           "type": "narration",
           "text": "实验暂停了。代价是，谈判桌两端的人开始互相不看眼睛。冰川争取到了时间，人类失去了默契。",
-          "next": "c4_11"
+          "next": "c4_11",
+          "video": "scene12c"
         },
         {
           "id": "c4_10",
           "type": "narration",
           "text": "冷凝器试运行的那天，天空出现了不该出现的云——形状完整、边界锋利，像谁用尺子画上去的。雁群飞过去的时候，风是逆的。",
-          "next": "c4_11"
+          "next": "c4_11",
+          "video": "scene12a"
         },
         {
           "id": "c4_11",
@@ -725,8 +906,15 @@
               "hint": "雁群用身体阻挡热气流，为冰川争取时间。幼雁不断坠落。",
               "risk": "族群数量 -50%，但大幅提升走向「新冰川」结局的概率。",
               "effects": {
-                "stats": { "population": -50, "glacier": 12, "trust": 10, "coop": 10 },
-                "flags": { "sacrifice": true },
+                "stats": {
+                  "population": -50,
+                  "glacier": 12,
+                  "trust": 10,
+                  "coop": 10
+                },
+                "flags": {
+                  "sacrifice": true
+                },
                 "note": "雁群把身体变成了一道堤坝"
               },
               "next": "c4_12"
@@ -737,42 +925,54 @@
               "hint": "折向南方，解锁新航线。遇见袋鼠与野兔争夺最后的水源。",
               "risk": "新挑战：38℃ 高温与有毒藻类。",
               "effects": {
-                "stats": { "population": -10, "radical": -5, "coop": -10, "stamina": -15, "glacier": -4 },
-                "flags": { "diaspora": true },
+                "stats": {
+                  "population": -10,
+                  "radical": -5,
+                  "coop": -10,
+                  "stamina": -15,
+                  "glacier": -4
+                },
+                "flags": {
+                  "diaspora": true
+                },
                 "note": "航线折向南方大陆"
               },
               "next": "c4_13"
             }
-          ]
+          ],
+          "video": "scene11b"
         },
         {
           "id": "c4_12",
           "type": "narration",
           "fx": "shake",
           "text": "雁群张开翅膀，像一片活着的堤坝，撞进滚烫的气流。幼雁一只接一只地掉下去，你能听见它们落进云里的声音。热浪退了。航线也断了。",
-          "next": "c4_14"
+          "next": "c4_14",
+          "video": "scene13b"
         },
         {
           "id": "c4_13",
           "type": "narration",
           "text": "航线折向南方。海水是温的，风里带着一股藻类的甜腥味。袋鼠和野兔在一条快干掉的河边对峙，谁也不肯先喝水。",
-          "next": "c4_14"
+          "next": "c4_14",
+          "video": "scene11c"
         },
         {
           "id": "c4_14",
           "type": "narration",
           "text": "七十二小时倒计时，开始了。",
-          "next": "c4_15"
+          "next": "c4_15",
+          "video": "scene10"
         },
         {
           "id": "c4_15",
           "type": "chapter",
           "chapter": "ch5",
-          "next": "c5_01"
+          "next": "c5_01",
+          "video": "scene12a"
         }
       ]
     },
-
     {
       "id": "ch5",
       "index": 5,
@@ -784,13 +984,15 @@
           "type": "narration",
           "fx": "shake",
           "text": "（72 小时倒计时：格陵兰冰盖崩塌预警）",
-          "next": "c5_02"
+          "next": "c5_02",
+          "video": "scene10"
         },
         {
           "id": "c5_02",
           "type": "narration",
           "text": "卫星图上，格陵兰的裂缝以每小时 1.2 公里的速度向内扩张。人类第一次，把一只鸟请上了谈判桌——因为你，是唯一见过它全身的人。",
-          "next": "c5_03"
+          "next": "c5_03",
+          "video": "scene9"
         },
         {
           "id": "c5_03",
@@ -804,14 +1006,16 @@
               "剩余窗口：72 小时。",
               "评估：这不是一次冰川事件，这是一次海平面事件。"
             ]
-          }
+          },
+          "video": "scene8"
         },
         {
           "id": "c5_04",
           "type": "dialogue",
           "speaker": "金雕 · 赤瞳",
           "text": "（落在你身边，翅膀收得很慢）他们把决定权给了我们。不是因为尊重，是因为账单终于送到了他们桌上。",
-          "next": "c5_05"
+          "next": "c5_05",
+          "video": "scene9"
         },
         {
           "id": "c5_05",
@@ -825,11 +1029,21 @@
               "tag": "选项16",
               "hint": "把全部监测数据公开，逼全球在同一时刻按下同一个开关。",
               "risk": "代价：全球经济倒退 20 年（股市熔断动画）。",
-              "require": { "stat": "coop", "op": ">=", "value": 70 },
+              "require": {
+                "stat": "coop",
+                "op": ">=",
+                "value": 70
+              },
               "locked_hint": "需合作值 ≥ 70，否则 G20 峰会谈判破裂。",
               "effects": {
-                "stats": { "glacier": 25, "coop": 10, "population": 10 },
-                "flags": { "global_plan": true },
+                "stats": {
+                  "glacier": 25,
+                  "coop": 10,
+                  "population": 10
+                },
+                "flags": {
+                  "global_plan": true
+                },
                 "note": "全球紧急计划通过"
               },
               "next": "c5_06"
@@ -840,37 +1054,56 @@
               "hint": "把最后七十二小时交给实验室。人类擅长等待奇迹。",
               "risk": "风险：97% 概率触发末日结局。",
               "effects": {
-                "stats": { "glacier": -20, "coop": -5 },
-                "flags": { "wait_tech": true },
+                "stats": {
+                  "glacier": -20,
+                  "coop": -5
+                },
+                "flags": {
+                  "wait_tech": true
+                },
                 "note": "七十二小时交给实验室"
               },
               "branch": [
-                { "when": { "flag": "diaspora" }, "next": "c5_diaspora" },
-                { "when": { "flag": "atmo_tech" }, "next": "c5_08" }
+                {
+                  "when": {
+                    "flag": "diaspora"
+                  },
+                  "next": "c5_diaspora"
+                },
+                {
+                  "when": {
+                    "flag": "atmo_tech"
+                  },
+                  "next": "c5_08"
+                }
               ],
               "next": "c5_07"
             }
-          ]
+          ],
+          "video": "scene9"
         },
         {
           "id": "c5_emergency_in",
           "type": "chapter",
           "chapter": "ch5",
-          "next": "c5_06"
+          "next": "c5_06",
+          "video": "scene9"
         },
         {
           "id": "c5_06",
           "type": "narration",
           "speaker": "全球紧急计划",
           "text": "二十七个国家在同一分钟关停了三千七百座高排放设施。屏幕上，股市的红色一路熔断到底——这一次，跌停的颜色和涨停是一样的。",
-          "next": "c5_resolve"
+          "next": "c5_resolve",
+          "video": "scene9"
         },
         {
           "id": "c5_07",
           "type": "narration",
           "speaker": "等待",
           "text": "七十二小时里，新闻只播了两件事：一场没有结论的技术听证会，和一条越来越宽的裂缝。",
-          "next": "c5_doom"
+          "next": "c5_doom",
+          "video": "scene8"
         },
         {
           "id": "c5_08",
@@ -878,91 +1111,138 @@
           "speaker": "大气冷凝器 · 启动",
           "fx": "flashice",
           "text": "冷凝器全功率启动的那一刻，格陵兰上空下起了一场不属于这个季节的雪。冰回来了——以一种谁也无法预料的方式。",
-          "next": "c5_greenhouse"
+          "next": "c5_greenhouse",
+          "video": "scene12b"
         },
         {
           "id": "c5_resolve",
           "type": "resolve",
           "branches": [
-            { "when": { "flag": "diaspora" }, "next": "c5_diaspora" },
+            {
+              "when": {
+                "flag": "diaspora"
+              },
+              "next": "c5_diaspora"
+            },
             {
               "when": {
                 "all": [
-                  { "flag": "global_plan" },
-                  { "stat": "glacier", "op": ">=", "value": 70 },
-                  { "stat": "population", "op": ">=", "value": 55 }
+                  {
+                    "flag": "global_plan"
+                  },
+                  {
+                    "stat": "glacier",
+                    "op": ">=",
+                    "value": 70
+                  },
+                  {
+                    "stat": "population",
+                    "op": ">=",
+                    "value": 55
+                  }
                 ]
               },
               "next": "c5_good"
             },
-            { "when": { "flag": "global_plan" }, "next": "c5_dawn" },
-            { "when": { "stat": "population", "op": "<=", "value": 30 }, "next": "c5_fragile" },
-            { "when": { "stat": "glacier", "op": "<=", "value": 30 }, "next": "c5_doom" }
+            {
+              "when": {
+                "flag": "global_plan"
+              },
+              "next": "c5_dawn"
+            },
+            {
+              "when": {
+                "stat": "population",
+                "op": "<=",
+                "value": 30
+              },
+              "next": "c5_fragile"
+            },
+            {
+              "when": {
+                "stat": "glacier",
+                "op": "<=",
+                "value": 30
+              },
+              "next": "c5_doom"
+            }
           ],
-          "next": "c5_dawn"
+          "next": "c5_dawn",
+          "video": "scene10"
         },
         {
           "id": "c5_good",
           "type": "narration",
           "fx": "flashice",
           "text": "七十二小时后，裂缝停止了扩张。赤瞳在议会的高处飞了整整一圈，然后落下来，什么也没说。",
-          "next": "c5_end_good"
+          "next": "c5_end_good",
+          "video": "scene12b"
         },
         {
           "id": "c5_dawn",
           "type": "narration",
           "text": "冰没有消失，也没有回来。它停在了一个很细很细的平衡上——细到需要每一只雁、每一个人，每年都再推它一把。",
-          "next": "c5_end_dawn"
+          "next": "c5_end_dawn",
+          "video": "scene12c"
         },
         {
           "id": "c5_fragile",
           "type": "narration",
           "text": "冰川被保住了。可当雁群回到珠峰时，能落在冰脊上的，已经凑不成一个完整的 V 字。",
-          "next": "c5_end_dawn"
+          "next": "c5_end_dawn",
+          "video": "scene13b"
         },
         {
           "id": "c5_doom",
           "type": "narration",
           "fx": "bigshake",
           "text": "第七十一小时四十分，格陵兰冰盖西缘整段脱离。海平面在十九分钟内上升了两米。",
-          "next": "c5_end_doom"
+          "next": "c5_end_doom",
+          "video": "scene14a"
         },
         {
           "id": "c5_greenhouse",
           "type": "narration",
           "text": "雪越下越大。三亚的沙滩上积起了半米厚的冰壳，赤道的海面结起一层薄薄的、脆脆的白。地球被拽进了另一场失控的降温。",
-          "next": "c5_end_greenhouse"
+          "next": "c5_end_greenhouse",
+          "video": "scene14b"
         },
         {
           "id": "c5_diaspora",
           "type": "narration",
           "text": "南方的雁群收到了最后一条来自北方的消息。它们在南半球温热的空气里盘旋了很久，然后继续往南——回不去的家，也是一种家。",
-          "next": "c5_end_diaspora"
+          "next": "c5_end_diaspora",
+          "video": "scene11c"
         },
         {
           "id": "c5_end_good",
           "type": "ending",
-          "ending": "ending_new_glacier"
+          "ending": "ending_new_glacier",
+          "video": "scene12b"
         },
         {
           "id": "c5_end_dawn",
           "type": "ending",
-          "ending": "ending_dawn"
+          "ending": "ending_dawn",
+          "video": "scene12c"
         },
         {
           "id": "c5_end_diaspora",
           "type": "ending",
-          "ending": "ending_diaspora"
+          "ending": "ending_diaspora",
+          "video": "scene11c"
         },
         {
           "id": "c5_end_doom",
           "type": "ending",
-          "ending": "ending_doom"
+          "ending": "ending_doom",
+          "video": "scene14a"
         },
         {
           "id": "c5_end_greenhouse",
           "type": "ending",
-          "ending": "ending_greenhouse"
+          "ending": "ending_greenhouse",
+          "video": "scene14b"
         }
       ]
     }

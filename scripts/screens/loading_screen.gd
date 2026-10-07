@@ -27,6 +27,7 @@ func _ready() -> void:
 	_bg.scene_key = "title"
 	_bg.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	add_child(_bg)
+	_bg.set_video("scene12c")
 	_build()
 	_steps = [
 		"读取剧情数据…",

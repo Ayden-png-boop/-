@@ -78,6 +78,7 @@ static var CHAPTERS := [
 		"summary": "冰裂声撕裂寂静。四十年的退缩，在一条新裂缝里露出了獠牙。",
 		"accent": C_ICE,
 		"bg": "ch1",
+		"video": "scene1",
 	},
 	{
 		"id": "ch2",
@@ -89,6 +90,7 @@ static var CHAPTERS := [
 		"summary": "雪豹、牦牛与金雕围坐在残垣之间。抗议，还是求援？",
 		"accent": C_GOLD,
 		"bg": "ch2",
+		"video": "scene5a",
 	},
 	{
 		"id": "ch3",
@@ -100,6 +102,7 @@ static var CHAPTERS := [
 		"summary": "玻璃幕墙反射着致命的白光，广告牌上写着「清洁能源，守护冰川」。",
 		"accent": C_WARN,
 		"bg": "ch3",
+		"video": "scene7",
 	},
 	{
 		"id": "ch4",
@@ -111,6 +114,7 @@ static var CHAPTERS := [
 		"summary": "记忆中的冰原不见了。半座冰崖在眼前轰然坠入黑色的融水湖。",
 		"accent": Color("#b7e3ff"),
 		"bg": "ch4",
+		"video": "scene10",
 	},
 	{
 		"id": "ch5",
@@ -122,6 +126,7 @@ static var CHAPTERS := [
 		"summary": "格陵兰冰盖崩塌预警，72 小时。人类文明第一次需要一只鸟的建议。",
 		"accent": C_DANGER,
 		"bg": "ch5",
+		"video": "scene9",
 	},
 ]
 
@@ -133,6 +138,7 @@ static var ENDINGS := {
 		"tone": "good",
 		"accent": C_COOP,
 		"bg": "ending_good",
+		"video": "scene12b",
 		"summary": "七十二小时后，格陵兰的裂缝停止了扩张。第二年春天，雪翼在一条新生的冰舌上，看着小雁第一次踩碎薄冰、扑棱着学会起飞。她想起赤瞳的那句「再这样下去，我们的后代连雪都看不到了」——现在，雪回来了。",
 	},
 	"ending_dawn": {
@@ -141,6 +147,7 @@ static var ENDINGS := {
 		"tone": "neutral",
 		"accent": C_GOLD,
 		"bg": "ending_good",
+		"video": "scene12c",
 		"summary": "紧急计划通过了，但代价比谁都预想的更重。冰川没有消失，也未曾恢复——它停在了一个脆弱的平衡上。雪翼明白，这不是胜利，只是把终局往后推了一代人。",
 	},
 	"ending_diaspora": {
@@ -149,6 +156,7 @@ static var ENDINGS := {
 		"tone": "neutral",
 		"accent": C_ICE_DIM,
 		"bg": "ending_good",
+		"video": "scene11c",
 		"summary": "雁群飞向了南方那座陌生的大陆。水是热的，藻类是毒的，袋鼠和野兔在枯河边争夺最后一洼水。雪翼活着，族群活着，只是它们再也回不去那个会下雪的故乡了。",
 	},
 	"ending_doom": {
@@ -157,6 +165,7 @@ static var ENDINGS := {
 		"tone": "bad",
 		"accent": C_DANGER,
 		"bg": "ending_bad",
+		"video": "scene14a",
 		"summary": "格陵兰冰盖在第七十一小时四十分崩塌。镜头拉远：海水漫过自由女神像的肩，漫过迪拜的玻璃幕墙，漫过珠峰的北坡。雪翼在空中盘旋了很久，然后发现，已经没有可以落下的陆地了。",
 	},
 	"ending_greenhouse": {
@@ -165,6 +174,7 @@ static var ENDINGS := {
 		"tone": "bad",
 		"accent": C_WARN,
 		"bg": "ending_bad",
+		"video": "scene14b",
 		"summary": "大气冷凝器启动了。冰回来了——以一种谁也无法预料的方式。暴雪在三亚落下，赤道的海洋结起薄壳，地球被拽进了另一场失控的降温。人类和候鸟一起，学会了在钢铁温室里等待下一个春天。",
 	},
 }

@@ -1,3 +1,10 @@
 # Godot 4+ specific ignores
 .godot/
 /android/
+
+# Web 导出产物（构建输出，不入库）
+web/
+
+# 根目录残留的本地导出产物（构建输出，不入库）
+/11.pck
+/冰川信使.*

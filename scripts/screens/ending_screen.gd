@@ -32,6 +32,9 @@ func _ready() -> void:
 
 	var ed := GameDefs.ending_by_id(eid)
 	_bg.set_scene(String(ed.get("bg", "ending_bad")))
+	var gs_v := get_node_or_null("/root/GameState")
+	if gs_v == null or bool(gs_v.video_on):
+		_bg.set_video(String(ed.get("video", "")))
 	_build(ed)
 
 	var am := get_node_or_null("/root/AudioMgr")

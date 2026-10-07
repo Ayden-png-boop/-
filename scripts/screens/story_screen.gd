@@ -429,6 +429,7 @@ func _goto(node_id: String) -> void:
 
 
 func _apply_visual(nd: Dictionary, ntype: String) -> void:
+	var gs := get_node_or_null("/root/GameState")
 	if nd.has("bg"):
 		var b := String(nd["bg"])
 		if b != "":
@@ -436,6 +437,15 @@ func _apply_visual(nd: Dictionary, ntype: String) -> void:
 	elif ntype != "chapter":
 		var cm := GameDefs.chapter_by_id(_chapter)
 		_bg.set_scene(String(cm.get("bg", _chapter)))
+	# CG 动画：节点自带 video 优先，其次章节卡用它所属章节的默认镜头。
+	# 没写 video 的节点沿用上一个镜头（画面连续，不会每句话闪一次）。
+	var vk := String(nd.get("video", ""))
+	if vk == "" and ntype == "chapter":
+		vk = String(GameDefs.chapter_by_id(String(nd.get("chapter", _chapter))).get("video", ""))
+	if gs != null and not bool(gs.video_on):
+		_bg.set_video_enabled(false)      # 设置里关了动画 → 回静态插画
+	elif vk != "":
+		_bg.set_video(vk)
 	if nd.has("fx"):
 		_bg.play_fx(String(nd["fx"]))
 
