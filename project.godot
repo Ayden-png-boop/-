@@ -5,9 +5,6 @@
 ; Format:
 ;   [section] ; section goes between []
 ;   param=value ; assign values to parameters
-;
-; 注意：本文件只支持「;」注释，不要用「#」——ConfigFile 解析器不认 #，
-; 会导致紧随其后的那一行设置被静默丢弃。
 
 config_version=5
 
@@ -17,6 +14,9 @@ config/name="冰川信使：斑头雁的2040"
 config/description="一款以斑头雁「雪翼」的视角，穿越珠峰、阿尔卑斯与格陵兰的剧情抉择游戏。"
 run/main_scene="res://scenes/loading_screen.tscn"
 config/features=PackedStringArray("4.7", "GL Compatibility")
+boot_splash/bg_color=Color(0.0235294, 0.0705882, 0.121569, 1)
+boot_splash/image="res://assets/bg/boot_splash.png"
+boot_splash/fullsize=true
 config/icon="res://icon.svg"
 
 [autoload]
@@ -29,15 +29,8 @@ DisplayMgr="*res://scripts/display_mgr.gd"
 
 [display]
 
-window/size/viewport_width=1152
-window/size/viewport_height=648
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
-
-[gui]
-
-theme/default_font_antialiasing=1
-theme/default_font_subpixel_positioning=1
 
 [input]
 

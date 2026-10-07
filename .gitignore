@@ -8,3 +8,9 @@ web/
 # 根目录残留的本地导出产物（构建输出，不入库）
 /11.pck
 /冰川信使.*
+
+# 本地工作区（部署密钥、助手记忆、临时脚本不入库）
+.deploy/
+.workbuddy/
+_tmp/
+assets/video/_orig_backup/

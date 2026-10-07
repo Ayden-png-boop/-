@@ -10,9 +10,11 @@ extends Control
 const BG_DIR := "res://assets/bg/"
 const BG_EXTS := [".png", ".jpg", ".jpeg", ".webp"]
 
-## CG 动画目录与视频画幅（所有转码片段统一 854x480 / 16:9）
+## CG 动画目录与视频画幅（所有转码片段统一 848x480 / 16:9）
+## 注意：Godot 内置 Theora 解码器要求宽高为 16 的倍数，否则会出现马赛克花屏，
+## 因此显示尺寸从 854 改为 848（编码帧与显示帧完全一致）。
 const VIDEO_DIR := "res://assets/video/"
-const VIDEO_SIZE := Vector2(854, 480)
+const VIDEO_SIZE := Vector2(848, 480)
 
 ## 每个场景的画面配方
 static var PRESETS := {

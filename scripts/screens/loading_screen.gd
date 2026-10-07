@@ -19,6 +19,11 @@ var _step_index: int = 0
 var _step_timer: float = 0.0
 var _blink: float = 0.0
 var _input_lock: float = 0.0
+## 入场动画引用
+var _intro_row: Control = null
+var _intro_bottom: Control = null
+var _intro_title: Label = null
+var _intro_sub: Label = null
 
 
 func _ready() -> void:
@@ -29,6 +34,7 @@ func _ready() -> void:
 	add_child(_bg)
 	_bg.set_video("scene12c")
 	_build()
+	_play_intro()
 	_steps = [
 		"读取剧情数据…",
 		"装载中文字形…",
@@ -36,6 +42,32 @@ func _ready() -> void:
 		"布置界面…",
 	]
 	_prepare()
+
+
+## 开场动画：主内容淡入上浮，标题逐层显现，进度条随后滑入。
+func _play_intro() -> void:
+	if _intro_row == null:
+		return
+	_intro_row.modulate.a = 0.0
+	if _intro_title != null:
+		_intro_title.modulate.a = 0.0
+	if _intro_sub != null:
+		_intro_sub.modulate.a = 0.0
+	if _intro_bottom != null:
+		_intro_bottom.modulate.a = 0.0
+	var tw := create_tween()
+	tw.set_parallel(true)
+	tw.tween_property(_intro_row, "modulate:a", 1.0, 0.5) \
+		.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	if _intro_title != null:
+		tw.tween_property(_intro_title, "modulate:a", 1.0, 0.55).set_delay(0.18) \
+			.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	if _intro_sub != null:
+		tw.tween_property(_intro_sub, "modulate:a", 1.0, 0.55).set_delay(0.38) \
+			.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	if _intro_bottom != null:
+		tw.tween_property(_intro_bottom, "modulate:a", 1.0, 0.5).set_delay(0.5) \
+			.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 
 
 func _prepare() -> void:
@@ -53,6 +85,7 @@ func _build() -> void:
 	var row := UiKit.hbox(0)
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	margin.add_child(row)
+	_intro_row = row
 
 	var left := UiKit.vbox(16)
 	left.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -70,9 +103,11 @@ func _build() -> void:
 	var title := UiKit.label("冰川信使", 76, GameDefs.C_TEXT)
 	title.add_theme_font_override("font", UiKit.bold_font())
 	left.add_child(title)
+	_intro_title = title
 
 	var sub := UiKit.label("斑头雁的 2040", 32, GameDefs.C_ICE)
 	left.add_child(sub)
+	_intro_sub = sub
 
 	left.add_child(UiKit.spacer(6))
 
@@ -101,6 +136,7 @@ func _build() -> void:
 	bottom.offset_top = -132
 	bottom.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(bottom)
+	_intro_bottom = bottom
 
 	var bcol := UiKit.vbox(9)
 	bcol.mouse_filter = Control.MOUSE_FILTER_IGNORE
