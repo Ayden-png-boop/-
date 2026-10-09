@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Web 导出后处理，每次 Godot 重新导出后必须重新执行：
 
-1. 手机适配补丁：竖屏旋转提示 + 全屏按钮（幂等注入）
+1. 手机适配补丁：强制横屏（全屏+方向锁，失败降级为 2 秒竖屏提示）+ 加载进度 HUD + 全屏按钮（幂等注入）
 2. 缓存穿透：pck/js 引用加版本号（?v=时间戳）。
    服务器对 pck/js 下发 immutable 长缓存，URL 不变的话浏览器永远拿旧文件；
    给 mainPack 和 script src 拼上按 pck 修改时间生成的版本号即可强制更新，
@@ -21,22 +21,15 @@ BUST_MARK = '/*CACHE-BUST*/'
 INJECT = '''<!-- MOBILE-PATCH -->
 <style>
 html, body { height: 100%; }
+/* 横屏提示：仅 JS 检测到竖屏时显示，2 秒后自动消失（CSS 媒体查询在部分安卓上判断失真） */
 #rotate-hint { position: fixed; inset: 0; z-index: 9999; display: none;
   background: linear-gradient(180deg, #06121f 0%, #0a2237 100%);
   color: #cfe4f2; font-family: sans-serif; text-align: center;
   flex-direction: column; justify-content: center; align-items: center; gap: 18px; }
-@media (orientation: portrait) { #rotate-hint:not([hidden]) { display: flex; } }
-#rotate-hint[hidden] { display: none !important; }
 #rotate-hint .icon { font-size: 64px; animation: rot 2s ease-in-out infinite; }
 @keyframes rot { 0%, 40% { transform: rotate(0); } 70%, 100% { transform: rotate(90deg); } }
 #rotate-hint .t1 { font-size: 22px; font-weight: 600; letter-spacing: 2px; }
 #rotate-hint .t2 { font-size: 14px; opacity: .6; letter-spacing: 4px; }
-#rotate-skip { margin-top: 26px; padding: 12px 28px; border-radius: 999px;
-  border: 1px solid rgba(120,180,220,.45); background: rgba(120,180,220,.08);
-  color: #cfe4f2; font-size: 15px; letter-spacing: 2px;
-  user-select: none; -webkit-user-select: none; touch-action: manipulation;
-  cursor: pointer; }
-#rotate-skip:active { background: rgba(120,180,220,.22); }
 #fs-btn { position: fixed; right: 10px; bottom: 10px; z-index: 9998; display: none;
   width: 42px; height: 42px; border-radius: 10px; border: 1px solid rgba(120,180,220,.35);
   background: rgba(6,18,31,.55); color: #cfe4f2; font-size: 19px; line-height: 40px;
@@ -54,37 +47,78 @@ html, body { height: 100%; }
 #load-bar .fill { width: 0%; height: 100%; border-radius: 3px;
   background: linear-gradient(90deg, #4aa3c7, #7fd0ea); transition: width .3s; }
 </style>
-<div id="rotate-hint"><div class="icon">📱</div><div class="t1">请旋转手机横屏游玩</div><div class="t2">冰川信使 · 斑头雁的 2040</div><div id="rotate-skip">仍以竖屏继续 →</div></div>
+<div id="rotate-hint"><div class="icon">📱</div><div class="t1">请横屏游玩</div><div class="t2">冰川信使 · 斑头雁的 2040</div></div>
 <div id="load-hud"><div class="lb" id="load-label">正在加载游戏资源… 0%</div><div id="load-bar"><div class="fill" id="load-fill"></div></div><div class="tip">首次加载约 20MB，手机网络下可能需要 1~2 分钟</div></div>
 <div id="fs-btn" title="全屏">⛶</div>
 <script>
 (function () {
-  // 横屏提示：sessionStorage 记忆「仍以竖屏继续」
-  var hint = document.getElementById('rotate-hint');
-  var skip = document.getElementById('rotate-skip');
-  var KEY = 'gcm-portrait-ok';
-  function hideHint() { hint.hidden = true; }
-  try { if (sessionStorage.getItem(KEY) === '1') hideHint(); } catch (e) {}
-  skip.addEventListener('click', function () {
-    try { sessionStorage.setItem(KEY, '1'); } catch (e) {}
-    hideHint();
-  });
-
-  var b = document.getElementById('fs-btn');
-  if (document.documentElement.requestFullscreen) {
-    if (matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window) b.style.display = 'block';
-    b.addEventListener('click', function () {
-      if (document.fullscreenElement) document.exitFullscreen();
-      else document.documentElement.requestFullscreen().catch(function () {});
-    });
-    window.addEventListener('fullscreenchange', function () {
-      b.textContent = document.fullscreenElement ? '✕' : '⛶';
-    });
-  }
-
-  // 加载进度 HUD：轮询 Godot 原生进度条数值，渲染醒目的百分比 + 进度条
   var isTouch = matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window;
   if (!isTouch) return;
+
+  // 手动全屏切换按钮
+  var b = document.getElementById('fs-btn');
+  b.style.display = 'block';
+  b.addEventListener('click', function () {
+    if (document.fullscreenElement) document.exitFullscreen();
+    else document.documentElement.requestFullscreen().catch(function () {});
+  });
+  window.addEventListener('fullscreenchange', function () {
+    b.textContent = document.fullscreenElement ? '✕' : '⛶';
+  });
+
+  var hint = document.getElementById('rotate-hint');
+  var hintTimer = null;
+  function isPortrait() { return window.innerHeight > window.innerWidth; }
+
+  // 强制横屏：全屏 + 方向锁（Android Chrome 需全屏和用户手势，失败则静默降级为 2 秒提示）
+  function tryForceLandscape() {
+    if (!isPortrait()) return;
+    function lock() {
+      try {
+        if (screen.orientation && screen.orientation.lock) {
+          var p = screen.orientation.lock('landscape');
+          if (p && p.catch) p.catch(function () {});
+        }
+      } catch (e) {}
+    }
+    try {
+      if (document.fullscreenElement) { lock(); return; }
+      if (document.documentElement.requestFullscreen) {
+        var r = document.documentElement.requestFullscreen();
+        if (r && r.then) r.then(lock).catch(function () {});
+        else lock();
+      } else lock();
+    } catch (e) {}
+  }
+
+  // 方向提示：竖屏时最多显示 2 秒，横屏绝不显示
+  function syncHint() {
+    clearTimeout(hintTimer);
+    if (isPortrait()) {
+      hint.style.display = 'flex';
+      hintTimer = setTimeout(function () { hint.style.display = 'none'; }, 2000);
+    } else {
+      hint.style.display = 'none';
+    }
+  }
+  hint.addEventListener('click', function () {
+    clearTimeout(hintTimer);
+    hint.style.display = 'none';
+  });
+  window.addEventListener('resize', syncHint);
+  window.addEventListener('orientationchange', function () {
+    setTimeout(syncHint, 350);
+    tryForceLandscape();
+  });
+  syncHint();
+  tryForceLandscape();
+  // 浏览器要求用户手势：首次触摸时再尝试一次强制横屏
+  document.addEventListener('touchstart', function once() {
+    document.removeEventListener('touchstart', once);
+    tryForceLandscape();
+  }, { passive: true });
+
+  // 加载进度 HUD：轮询 Godot 原生进度条数值，渲染醒目的百分比 + 进度条
   var hud = document.getElementById('load-hud');
   var label = document.getElementById('load-label');
   var fill = document.getElementById('load-fill');

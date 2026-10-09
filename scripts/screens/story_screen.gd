@@ -503,10 +503,10 @@ func _show_text(nd: Dictionary, ntype: String) -> void:
 		_choice_inline.visible = false
 	var full_text := String(nd.get("text", ""))
 	var sp_raw := String(nd.get("speaker", ""))
-	# 镜头语言/环境细节不进对话框：以电影字幕形式浮在画面上并自动推进
+	# 镜头语言/环境细节不显示任何文字：只切画面，短暂停留后自动推进
 	if ntype == "narration" and (bool(nd.get("cinematic", false))
 			or _is_cinematic_text(full_text) or _is_cinematic_speaker(sp_raw)):
-		_show_cinematic_caption(full_text)
+		_skip_cinematic_text()
 		return
 	var speaker := String(nd.get("speaker", ""))
 	if speaker == "":
@@ -546,11 +546,9 @@ func _set_box_visible(v: bool) -> void:
 
 
 # ===========================================================================
-# 电影字幕：镜头语言/环境细节不走对话框，浮在画面下三分之一并自动推进
+# 镜头节点：镜头语言/环境细节不显示文字，只让 _apply_visual() 切画面，
+# 短暂停留后自动推进到下一节点
 # ===========================================================================
-var _caption: Label = null
-
-
 func _is_cinematic_speaker(sp: String) -> bool:
 	return sp.contains("镜头") or sp.contains("环境") or sp.contains("细节")
 
@@ -564,44 +562,19 @@ func _is_cinematic_text(t: String) -> bool:
 	return false
 
 
-func _ensure_caption() -> Label:
-	if _caption != null and is_instance_valid(_caption):
-		return _caption
-	var wrap := UiKit.margin(170, 0, 170, 0)
-	wrap.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
-	wrap.offset_top = -300
-	wrap.offset_bottom = -220
-	wrap.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	add_child(wrap)
-	_caption = UiKit.wrapped("", 21, Color("#dcecf7"))
-	_caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_caption.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.6))
-	_caption.add_theme_constant_override("shadow_offset_x", 0)
-	_caption.add_theme_constant_override("shadow_offset_y", 2)
-	_caption.add_theme_constant_override("shadow_outline_size", 8)
-	_caption.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	wrap.add_child(_caption)
-	return _caption
-
-
-func _show_cinematic_caption(text: String) -> void:
+func _skip_cinematic_text() -> void:
 	_set_box_visible(false)
 	_hide_choices()
-	var cap := _ensure_caption()
-	cap.text = text
-	cap.visible = true
-	cap.modulate.a = 0.0
 	_advance_ready = false
 	_typing = false
-	# 镜头字幕不配语音，顺带掐掉上一节点残留的配音
 	_voice_stop()
-	var dur := clampf(2.0 + float(text.length()) * 0.045, 2.6, 6.0)
+	_busy = true
+	# 稍作停留让视频/插画切换启动；跳过模式下瞬时通过
+	var wait := 0.05 if fast_mode else 1.0
 	var tw := create_tween()
-	tw.tween_property(cap, "modulate:a", 1.0, 0.45)
-	tw.tween_interval(dur)
-	tw.tween_property(cap, "modulate:a", 0.0, 0.45)
+	tw.tween_interval(wait)
 	tw.tween_callback(func() -> void:
-		cap.visible = false
+		_busy = false
 		_goto(String(_node.get("next", ""))))
 
 

@@ -202,11 +202,14 @@ func set_video_volume(v: float) -> void:
 		_player.volume_db = linear_to_db(clampf(v, 0.0001, 1.0))
 
 
-## 弹窗等全屏遮挡时暂停背景视频（保留进度），关闭后恢复播放
+## 弹窗等全屏遮挡时暂停背景视频（保留进度），关闭后恢复播放。
+## 用挂起标志兜底：若视频在挂起期间才异步加载完成，play() 后仍会保持暂停。
+var _video_hold := false
+
 func set_video_paused(paused: bool) -> void:
-	if _player == null:
-		return
-	_player.paused = paused
+	_video_hold = paused
+	if _player != null:
+		_player.paused = paused
 
 
 func _video_playing() -> bool:
@@ -237,6 +240,8 @@ func _play_stream(stream: VideoStream) -> void:
 	_apply_video_volume()
 	_layout_video()
 	_player.play()
+	# 弹窗挂起期间才加载完成的视频：播起来后立即回到暂停，避免遮挡层后出现画面和声音
+	_player.paused = _video_hold
 	queue_redraw()
 
 

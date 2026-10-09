@@ -2,12 +2,13 @@
 
 importer="mp3"
 type="AudioStreamMP3"
-uid="uid://b1j8ucusdo7d0"
-valid=false
+uid="uid://wrgmuugto7bi"
+path="res://.godot/imported/menu.mp3-3609eb4b11e711d0d5ed301c816f07c9.mp3str"
 
 [deps]
 
 source_file="res://assets/audio/bgm/menu.mp3"
+dest_files=["res://.godot/imported/menu.mp3-3609eb4b11e711d0d5ed301c816f07c9.mp3str"]
 
 [params]
 
