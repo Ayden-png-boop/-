@@ -16,8 +16,6 @@ const BOX_H_MAX := 180.0
 const TOP_H := 62.0
 
 var _hud_wrap: Control
-var _hud_btn: Button
-var _hud_hidden := false
 
 var _bg: BgArt
 var _top_chip: Label
@@ -176,41 +174,6 @@ func _build_hud() -> void:
 	hud_panel.add_child(hud_margin)
 	_hud = StatsHud.new()
 	hud_margin.add_child(_hud)
-
-	# 原神式折叠页签：把状态栏收起来，把画面还给 CG
-	_hud_btn = UiKit.ghost_button("»", 15, 30)
-	_hud_btn.custom_minimum_size = Vector2(26, 56)
-	_hud_btn.focus_mode = Control.FOCUS_NONE
-	_hud_btn.tooltip_text = "收起 / 展开状态栏"
-	_hud_btn.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
-	_hud_btn.offset_left = -30.0
-	_hud_btn.offset_right = -4.0
-	_hud_btn.offset_top = TOP_H + 12.0
-	_hud_btn.offset_bottom = TOP_H + 68.0
-	_hud_btn.pressed.connect(_toggle_hud)
-	add_child(_hud_btn)
-
-
-func _toggle_hud() -> void:
-	_hud_hidden = not _hud_hidden
-	if _hud_btn != null:
-		_hud_btn.text = "«" if _hud_hidden else "»"
-	var tw := create_tween().set_parallel(true)
-	if _hud_wrap != null:
-		var dl := 0.0 if _hud_hidden else -(HUD_W + 16.0)
-		var dr := float(HUD_W) if _hud_hidden else -16.0
-		tw.tween_property(_hud_wrap, "offset_left", dl, 0.25)\
-			.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-		tw.tween_property(_hud_wrap, "offset_right", dr, 0.25)\
-			.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	if _box != null:
-		var tr := -22.0 if _hud_hidden else -(HUD_W + 32.0)
-		tw.tween_property(_box, "offset_right", tr, 0.25)\
-			.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
-	if _choice_layer != null:
-		var cr := -32.0 if _hud_hidden else -(HUD_W + 32.0)
-		tw.tween_property(_choice_layer, "offset_right", cr, 0.25)\
-			.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 
 
 func _build_textbox() -> void:
