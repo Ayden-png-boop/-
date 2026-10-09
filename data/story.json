@@ -147,7 +147,8 @@
           "fx": "shake",
           "text": "远景：镜头以 45 度角俯拍珠峰北坡冰川，晨光在冰棱上折射出冷冽的蓝调。突然，一声如雷的冰裂声撕裂寂静——冰川表面瞬间迸开蛛网状的裂痕，融水像溃脓的伤口般喷涌而出。",
           "next": "c1_02",
-          "video": "scene1"
+          "video": "scene1",
+          "cinematic": true
         },
         {
           "id": "c1_02",
@@ -155,7 +156,8 @@
           "speaker": "环境细节",
           "text": "冰裂缝中升腾着诡异的白色雾气。飘落的冰晶在阳光下形成微型彩虹。而更远处，传来冰川坍塌的闷响回声——像是什么东西在地底翻身。",
           "next": "c1_03",
-          "video": "scene4"
+          "video": "scene4",
+          "cinematic": true
         },
         {
           "id": "c1_03",
@@ -285,7 +287,8 @@
           "type": "narration",
           "text": "破碎的经幡在寒风中猎猎作响，月光透过残垣断壁，在废墟上投下斑驳的阴影。",
           "next": "c2_02",
-          "video": "scene5a"
+          "video": "scene5a",
+          "cinematic": true
         },
         {
           "id": "c2_02",
@@ -557,7 +560,8 @@
           "type": "narration",
           "text": "镜头从高空俯冲。雁群在迪拜的摩天楼群间穿梭，玻璃幕墙反射的烈日强光形成致命的光污染带。",
           "next": "c3_02",
-          "video": "scene7"
+          "video": "scene7",
+          "cinematic": true
         },
         {
           "id": "c3_02",
@@ -565,14 +569,16 @@
           "fx": "flashice",
           "text": "雪翼的视角：画面短暂过曝，边缘泛起刺眼的白芒。HUD 显示「视觉灵敏度 -40%」。",
           "next": "c3_03",
-          "video": "scene7"
+          "video": "scene7",
+          "cinematic": true
         },
         {
           "id": "c3_03",
           "type": "narration",
           "text": "远处，人工滑雪场的造雪机轰鸣运转，与沙漠气候形成荒诞对比。玻璃幕墙上滚动播放着能源公司的广告：「清洁能源，守护冰川！」——讽刺的是，画面角落飘过一缕黑烟。",
           "next": "c3_04",
-          "video": "scene12a"
+          "video": "scene12a",
+          "cinematic": true
         },
         {
           "id": "c3_04",
@@ -778,7 +784,8 @@
           "fx": "shake",
           "text": "巨大的冰舌正在断裂。万年凝结的蓝冰在高温下发出不堪重负的呻吟，裂缝像蛛网般在冰面上蔓延。",
           "next": "c4_03",
-          "video": "scene1"
+          "video": "scene1",
+          "cinematic": true
         },
         {
           "id": "c4_03",
@@ -791,7 +798,8 @@
             }
           },
           "next": "c4_04",
-          "video": "scene1"
+          "video": "scene1",
+          "cinematic": true
         },
         {
           "id": "c4_04",
@@ -985,7 +993,8 @@
           "type": "narration",
           "text": "航线折向南方。海水是温的，风里带着一股藻类的甜腥味。袋鼠和野兔在一条快干掉的河边对峙，谁也不肯先喝水。",
           "next": "c4_14",
-          "video": "scene11c"
+          "video": "scene11c",
+          "cinematic": true
         },
         {
           "id": "c4_14",
@@ -1015,7 +1024,8 @@
           "fx": "shake",
           "text": "（72 小时倒计时：格陵兰冰盖崩塌预警）",
           "next": "c5_02",
-          "video": "scene10"
+          "video": "scene10",
+          "cinematic": true
         },
         {
           "id": "c5_02",

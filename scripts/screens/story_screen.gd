@@ -275,8 +275,9 @@ func _fit_box_after_frame() -> void:
 	if _box == null or _text == null or _speaker == null:
 		return
 	var fs := float(_text.get_theme_font_size("font_size"))
-	var sf := float(_speaker.get_theme_font_size("font_size"))
-	var content := 14.0 + sf * 1.35 + 4.0 + fs * 1.45 * float(_text.get_line_count())
+	var sf := float(_speaker.get_theme_font_size("font_size")) if _speaker.visible else 0.0
+	var gap := 4.0 if sf > 0.0 else 0.0
+	var content := 14.0 + sf * 1.35 + gap + fs * 1.45 * float(_text.get_line_count())
 	_fit_box_to(clampf(content, BOX_H_MIN, BOX_H_MAX))
 
 
@@ -536,10 +537,16 @@ func _show_text(nd: Dictionary, ntype: String) -> void:
 	_text.visible = true
 	if _choice_inline != null:
 		_choice_inline.visible = false
+	var full_text := String(nd.get("text", ""))
+	# 镜头语言/环境细节不进对话框：以电影字幕形式浮在画面上并自动推进
+	if ntype == "narration" and (bool(nd.get("cinematic", false)) or _is_cinematic_text(full_text)):
+		_show_cinematic_caption(full_text, String(nd.get("id", "")))
+		return
 	var speaker := String(nd.get("speaker", ""))
 	if speaker == "":
-		speaker = "雪翼" if ntype == "dialogue" else "旁白"
+		speaker = "雪翼" if ntype == "dialogue" else ""
 	_speaker.text = speaker
+	_speaker.visible = speaker != ""
 	_speaker.add_theme_color_override("font_color",
 		GameDefs.C_ICE if ntype == "dialogue" else GameDefs.C_GOLD)
 
@@ -569,6 +576,65 @@ func _show_text(nd: Dictionary, ntype: String) -> void:
 func _set_box_visible(v: bool) -> void:
 	if _box != null:
 		_box.visible = v
+
+
+# ===========================================================================
+# 电影字幕：镜头语言/环境细节不走对话框，浮在画面下三分之一并自动推进
+# ===========================================================================
+var _caption: Label = null
+
+
+func _is_cinematic_text(t: String) -> bool:
+	if t.length() >= 2 and t.begins_with("（") and t.ends_with("）"):
+		return true
+	for k: String in ["镜头", "远景", "全景", "特写", "俯拍", "俯冲", "航拍", "转场", "机位"]:
+		if t.contains(k):
+			return true
+	return false
+
+
+func _ensure_caption() -> Label:
+	if _caption != null and is_instance_valid(_caption):
+		return _caption
+	var wrap := UiKit.margin(170, 0, 170, 0)
+	wrap.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
+	wrap.offset_top = -300
+	wrap.offset_bottom = -220
+	wrap.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	add_child(wrap)
+	_caption = UiKit.wrapped("", 21, Color("#dcecf7"))
+	_caption.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	_caption.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.6))
+	_caption.add_theme_constant_override("shadow_offset_x", 0)
+	_caption.add_theme_constant_override("shadow_offset_y", 2)
+	_caption.add_theme_constant_override("shadow_outline_size", 8)
+	_caption.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	wrap.add_child(_caption)
+	return _caption
+
+
+func _show_cinematic_caption(text: String, vo_id: String) -> void:
+	_set_box_visible(false)
+	_hide_choices()
+	var cap := _ensure_caption()
+	cap.text = text
+	cap.visible = true
+	cap.modulate.a = 0.0
+	_advance_ready = false
+	_typing = false
+	# 镜头语言旁白同样可能有配音
+	if not fast_mode:
+		var am := get_node_or_null("/root/AudioMgr")
+		if am != null:
+			am.play_voice(vo_id)
+	var dur := clampf(2.0 + float(text.length()) * 0.045, 2.6, 6.0)
+	var tw := create_tween()
+	tw.tween_property(cap, "modulate:a", 1.0, 0.45)
+	tw.tween_interval(dur)
+	tw.tween_property(cap, "modulate:a", 0.0, 0.45)
+	tw.tween_callback(func() -> void:
+		cap.visible = false
+		_goto(String(_node.get("next", ""))))
 
 
 func _process(delta: float) -> void:
@@ -1032,6 +1098,7 @@ func _toast_error(msg: String) -> void:
 	_pending_choice = {}
 	_pending_qte = {}
 	_speaker.text = "系统"
+	_speaker.visible = true
 	_speaker.add_theme_color_override("font_color", GameDefs.C_DANGER)
 	_text.text = msg
 	_fit_box_after_frame()
