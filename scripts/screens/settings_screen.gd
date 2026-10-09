@@ -13,6 +13,7 @@ var _sfx_row: HBoxContainer
 var _voice_row: HBoxContainer
 var _video_row: HBoxContainer
 var _fs_btn: Button
+var _sound_toggle: Button
 var _auto_toggle: Button
 var _voice_toggle: Button
 var _type_toggle: Button
@@ -137,9 +138,13 @@ func _build() -> void:
 
 	v.add_child(UiKit.hsep(GameDefs.C_LINE, 1))
 
-	# 开关行
+	# 开关行（每行最多三个，窄屏不溢出）
 	var toggles := UiKit.hbox(12)
 	toggles.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_sound_toggle = UiKit.button("", 18, 46)
+	_sound_toggle.custom_minimum_size = Vector2(220, 46)
+	_sound_toggle.pressed.connect(_toggle_sound)
+	toggles.add_child(_sound_toggle)
 	_fs_btn = UiKit.button("", 18, 46)
 	_fs_btn.custom_minimum_size = Vector2(220, 46)
 	_fs_btn.pressed.connect(_toggle_fullscreen)
@@ -148,10 +153,6 @@ func _build() -> void:
 	_auto_toggle.custom_minimum_size = Vector2(220, 46)
 	_auto_toggle.pressed.connect(_toggle_auto)
 	toggles.add_child(_auto_toggle)
-	var b_wipe := UiKit.ghost_button("清除存档", 18, 46)
-	b_wipe.custom_minimum_size = Vector2(180, 46)
-	b_wipe.pressed.connect(_ask_wipe)
-	toggles.add_child(b_wipe)
 	v.add_child(toggles)
 
 	var toggles2 := UiKit.hbox(12)
@@ -168,11 +169,19 @@ func _build() -> void:
 	_video_toggle.custom_minimum_size = Vector2(220, 46)
 	_video_toggle.pressed.connect(_toggle_video)
 	toggles2.add_child(_video_toggle)
+	v.add_child(toggles2)
+
+	var toggles3 := UiKit.hbox(12)
+	toggles3.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var b_wipe := UiKit.ghost_button("清除存档", 18, 46)
+	b_wipe.custom_minimum_size = Vector2(180, 46)
+	b_wipe.pressed.connect(_ask_wipe)
+	toggles3.add_child(b_wipe)
 	var b_replay := UiKit.ghost_button("试听配音", 18, 46)
 	b_replay.custom_minimum_size = Vector2(180, 46)
 	b_replay.pressed.connect(_preview_voice)
-	toggles2.add_child(b_replay)
-	v.add_child(toggles2)
+	toggles3.add_child(b_replay)
+	v.add_child(toggles3)
 
 	_save_note = UiKit.wrapped("", 15, GameDefs.C_MUTED)
 	v.add_child(_save_note)
@@ -182,6 +191,12 @@ func _build() -> void:
 		"提示：按 F11 可在任何界面切换全屏；剧情中按 空格 / 回车 / 点击空白处 推进文本；ESC 返回主菜单。剧情文本配有中文旁白与逐字敲击音，CG 动画背景也可在此关闭或调节音量。",
 		15, Color(0.56, 0.68, 0.78))
 	v.add_child(tip)
+
+	# 背景音乐 CC-BY 4.0 署名（许可要求必须保留）
+	var credit := UiKit.wrapped(
+		"背景音乐：Scott Buckley（www.scottbuckley.com.au）作品 —— Snowfall · Hiraeth · Signal to Noise · Ascension · I Walk With Ghosts，依据 Creative Commons Attribution 4.0 许可使用，本作中的音乐经过剪辑（裁剪 / 循环化处理）。",
+		14, GameDefs.C_MUTED)
+	v.add_child(credit)
 
 	_refresh_labels()
 
@@ -229,6 +244,8 @@ func _refresh_labels() -> void:
 		fs_on = true
 	elif gs != null:
 		fs_on = bool(gs.wants_fullscreen())
+	if _sound_toggle != null and gs != null:
+		_sound_toggle.text = "声音：开" if bool(gs.sound_on) else "声音：关"
 	if _fs_btn != null:
 		_fs_btn.text = "显示：全屏" if fs_on else "显示：窗口"
 	if _auto_toggle != null and gs != null:
@@ -246,6 +263,18 @@ func _refresh_labels() -> void:
 				GameDefs.chapter_index(String(gs.current_chapter)), String(cm.get("title", ""))]
 		else:
 			_save_note.text = "当前没有任何存档。"
+
+
+func _toggle_sound() -> void:
+	var gs := get_node_or_null("/root/GameState")
+	if gs == null:
+		return
+	gs.set_sound_on(not bool(gs.sound_on))
+	_refresh_labels()
+	# 打开时给一声确认音，让玩家立刻听出声音回来了；关闭时 Master 已静音，无声
+	var am := get_node_or_null("/root/AudioMgr")
+	if am != null and bool(gs.sound_on):
+		am.play_sfx("confirm")
 
 
 func _toggle_fullscreen() -> void:

@@ -32,6 +32,7 @@ var finished_ending: String = ""
 # ---------------------------------------------------------------------------
 var text_speed: float = 55.0         ## 打字机速度：字/秒
 var font_scale: float = 1.0
+var sound_on: bool = true            ## 总声音开关：关 = 静音 Master 总线（全部输出）
 var bgm_volume: float = 0.55
 var sfx_volume: float = 0.7
 var voice_on: bool = true            ## 剧情配音开关
@@ -397,6 +398,7 @@ func _load_settings() -> void:
 		return
 	text_speed = float(cfg.get_value("text", "speed", text_speed))
 	font_scale = float(cfg.get_value("text", "font_scale", font_scale))
+	sound_on = bool(cfg.get_value("audio", "sound_on", sound_on))
 	bgm_volume = float(cfg.get_value("audio", "bgm", bgm_volume))
 	sfx_volume = float(cfg.get_value("audio", "sfx", sfx_volume))
 	voice_on = bool(cfg.get_value("audio", "voice_on", voice_on))
@@ -410,6 +412,16 @@ func _load_settings() -> void:
 	var fullscreen := bool(cfg.get_value("display", "fullscreen", false))
 	# 全屏由 DisplayMgr 在启动时读取，这里只保留值
 	set_meta("fullscreen", fullscreen)
+	# 总声音开关：直接作用在 Master 总线上，环境音/音效/配音/CG 声音一并静音
+	AudioServer.set_bus_mute(AudioServer.get_bus_index("Master"), not sound_on)
+
+
+## 总声音开关：静音/恢复 Master 总线。分项音量滑条保持原值，
+## 重新打开时各声道立即按原音量回来。
+func set_sound_on(on: bool) -> void:
+	sound_on = on
+	AudioServer.set_bus_mute(AudioServer.get_bus_index("Master"), not on)
+	save_settings()
 
 
 func save_settings() -> void:
@@ -420,6 +432,7 @@ func save_settings() -> void:
 	cfg.set_value("text", "auto_delay", auto_delay)
 	cfg.set_value("audio", "bgm", bgm_volume)
 	cfg.set_value("audio", "sfx", sfx_volume)
+	cfg.set_value("audio", "sound_on", sound_on)
 	cfg.set_value("audio", "voice", voice_volume)
 	cfg.set_value("audio", "voice_on", voice_on)
 	cfg.set_value("audio", "typing_on", typing_on)
