@@ -48,12 +48,12 @@ func _build(opt: Dictionary) -> void:
 		UiKit.box(Color(0.05, 0.09, 0.13, 0.72), 12, Color(0.16, 0.22, 0.28), 1, 0))
 
 	# --- 内容 ---
-	_inner = UiKit.margin(18, 13, 18, 13)
+	_inner = UiKit.margin(14, 9, 14, 9)
 	_inner.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	_inner.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_inner)
 
-	var outer := UiKit.hbox(14)
+	var outer := UiKit.hbox(12)
 	outer.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_inner.add_child(outer)
 
@@ -65,20 +65,20 @@ func _build(opt: Dictionary) -> void:
 	bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	outer.add_child(bar)
 
-	var col := UiKit.vbox(7)
+	var col := UiKit.vbox(5)
 	col.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	col.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	outer.add_child(col)
 
 	# 第一行：标签片 + 选项标题
-	var head := UiKit.hbox(9)
+	var head := UiKit.hbox(8)
 	head.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var tag := String(opt.get("tag", ""))
 	if tag != "":
-		var c := UiKit.chip(tag, accent if not _locked else GameDefs.C_MUTED, 14)
+		var c := UiKit.chip(tag, accent if not _locked else GameDefs.C_MUTED, 12)
 		c.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		head.add_child(c)
-	var main_text := UiKit.label(String(opt.get("text", "")), 22,
+	var main_text := UiKit.label(String(opt.get("text", "")), 18,
 		GameDefs.C_MUTED if _locked else GameDefs.C_TEXT)
 	main_text.add_theme_font_override("font", UiKit.bold_font())
 	main_text.size_flags_vertical = Control.SIZE_SHRINK_CENTER
@@ -88,7 +88,7 @@ func _build(opt: Dictionary) -> void:
 	pad.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	head.add_child(pad)
 	if _locked:
-		var lk := UiKit.label("未满足条件", 15, GameDefs.C_DANGER)
+		var lk := UiKit.label("未满足条件", 13, GameDefs.C_DANGER)
 		lk.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 		head.add_child(lk)
 	col.add_child(head)
@@ -96,7 +96,7 @@ func _build(opt: Dictionary) -> void:
 	# 第二行：说明
 	var hint := String(opt.get("hint", ""))
 	if hint != "":
-		var h := UiKit.wrapped(hint, 17, GameDefs.C_MUTED if _locked else Color("#bcd8ea"))
+		var h := UiKit.wrapped(hint, 14, GameDefs.C_MUTED if _locked else Color("#bcd8ea"))
 		h.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		col.add_child(h)
 
@@ -112,15 +112,15 @@ func _build(opt: Dictionary) -> void:
 			continue
 		var col_c := GameDefs.stat_color(key)
 		var txt := "%s %s%d" % [GameDefs.stat_label(key), "+" if delta > 0 else "", int(delta)]
-		chips.add_child(UiKit.chip(txt, col_c, 13))
+		chips.add_child(UiKit.chip(txt, col_c, 12))
 		has_chip = true
 	var ev_list: Array = eff.get("evidence", []) if eff.get("evidence", []) is Array else []
 	for e: Variant in ev_list:
-		chips.add_child(UiKit.chip("证据 · %s" % String(e), GameDefs.C_GOLD, 13))
+		chips.add_child(UiKit.chip("证据 · %s" % String(e), GameDefs.C_GOLD, 12))
 		has_chip = true
 	var tk_list: Array = eff.get("tech", []) if eff.get("tech", []) is Array else []
 	for t: Variant in tk_list:
-		chips.add_child(UiKit.chip("科技 · %s" % String(t), GameDefs.C_COOP, 13))
+		chips.add_child(UiKit.chip("科技 · %s" % String(t), GameDefs.C_COOP, 12))
 		has_chip = true
 	if has_chip:
 		col.add_child(chips)
@@ -128,14 +128,14 @@ func _build(opt: Dictionary) -> void:
 	# 第四行：风险
 	var risk := String(opt.get("risk", ""))
 	if risk != "":
-		var r := UiKit.wrapped("风险：" + risk, 15, GameDefs.C_WARN)
+		var r := UiKit.wrapped("风险：" + risk, 13, GameDefs.C_WARN)
 		r.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		col.add_child(r)
 
 	# 第五行：未解锁原因
 	if _locked:
 		var lh := String(opt.get("locked_hint", "尚未满足解锁条件。"))
-		var l := UiKit.wrapped("✕ " + lh, 15, GameDefs.C_DANGER)
+		var l := UiKit.wrapped("✕ " + lh, 13, GameDefs.C_DANGER)
 		l.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		col.add_child(l)
 
@@ -144,7 +144,7 @@ func _build(opt: Dictionary) -> void:
 	await get_tree().process_frame
 	if _inner != null:
 		var need := _inner.get_combined_minimum_size().y
-		custom_minimum_size.y = maxf(72.0, need)
+		custom_minimum_size.y = maxf(52.0, need)
 
 
 func _ignore_mouse_deep(node: Node) -> void:

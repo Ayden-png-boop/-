@@ -9,8 +9,12 @@ const CHAPTER_SCENE := "res://scenes/chapter_select.tscn"
 const CODEX_SCENE := "res://scenes/codex_screen.tscn"
 const ENDING_SCENE := "res://scenes/ending_screen.tscn"
 
-const HUD_W := 236.0
+const HUD_W := 186.0
 const TOP_H := 62.0
+
+var _hud_wrap: Control
+var _hud_btn: Button
+var _hud_hidden := false
 
 var _bg: BgArt
 var _top_chip: Label
@@ -157,15 +161,50 @@ func _build_hud() -> void:
 	hud_wrap.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(hud_wrap)
 
-	var hud_panel := UiKit.panel(Color(0.031, 0.071, 0.114, 0.90), 12, GameDefs.C_LINE, 1, 0)
+	var hud_panel := UiKit.panel(Color(0.031, 0.071, 0.114, 0.72), 12, GameDefs.C_LINE, 1, 0)
 	# STOP：点击数值面板不会推进剧情
 	hud_panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	hud_wrap.add_child(hud_panel)
-	var hud_margin := UiKit.margin(14, 13, 14, 13)
+	var hud_margin := UiKit.margin(12, 11, 12, 11)
 	hud_margin.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	hud_panel.add_child(hud_margin)
 	_hud = StatsHud.new()
 	hud_margin.add_child(_hud)
+
+	# 原神式折叠页签：把状态栏收起来，把画面还给 CG
+	_hud_btn = UiKit.ghost_button("»", 15, 30)
+	_hud_btn.custom_minimum_size = Vector2(26, 56)
+	_hud_btn.focus_mode = Control.FOCUS_NONE
+	_hud_btn.tooltip_text = "收起 / 展开状态栏"
+	_hud_btn.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
+	_hud_btn.offset_left = -30.0
+	_hud_btn.offset_right = -4.0
+	_hud_btn.offset_top = TOP_H + 12.0
+	_hud_btn.offset_bottom = TOP_H + 68.0
+	_hud_btn.pressed.connect(_toggle_hud)
+	add_child(_hud_btn)
+
+
+func _toggle_hud() -> void:
+	_hud_hidden = not _hud_hidden
+	if _hud_btn != null:
+		_hud_btn.text = "«" if _hud_hidden else "»"
+	var tw := create_tween().set_parallel(true)
+	if _hud_wrap != null:
+		var dl := 0.0 if _hud_hidden else -(HUD_W + 16.0)
+		var dr := float(HUD_W) if _hud_hidden else -16.0
+		tw.tween_property(_hud_wrap, "offset_left", dl, 0.25)\
+			.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+		tw.tween_property(_hud_wrap, "offset_right", dr, 0.25)\
+			.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	if _box != null:
+		var tr := -22.0 if _hud_hidden else -(HUD_W + 32.0)
+		tw.tween_property(_box, "offset_right", tr, 0.25)\
+			.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	if _choice_layer != null:
+		var cr := -32.0 if _hud_hidden else -(HUD_W + 32.0)
+		tw.tween_property(_choice_layer, "offset_right", cr, 0.25)\
+			.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 
 
 func _build_textbox() -> void:
@@ -173,7 +212,7 @@ func _build_textbox() -> void:
 	_box.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
 	_box.offset_left = 22
 	_box.offset_right = -(HUD_W + 32.0)
-	_box.offset_top = -250
+	_box.offset_top = -196
 	_box.offset_bottom = -16
 	_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_box)
@@ -181,36 +220,43 @@ func _build_textbox() -> void:
 	var frame := Panel.new()
 	frame.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	frame.add_theme_stylebox_override("panel",
-		UiKit.box(Color(0.024, 0.059, 0.098, 0.93), 14, Color(0.16, 0.36, 0.50, 0.85), 1, 0))
+		UiKit.box(Color(0.024, 0.059, 0.098, 0.88), 14, Color(0.16, 0.36, 0.50, 0.85), 1, 0))
 	frame.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_box.add_child(frame)
 
 	var accent := ColorRect.new()
 	accent.color = GameDefs.C_ICE
-	accent.position = Vector2(0, 20)
-	accent.size = Vector2(3, 46)
+	accent.position = Vector2(0, 16)
+	accent.size = Vector2(3, 40)
 	accent.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_box.add_child(accent)
 
-	var bm := UiKit.margin(30, 22, 30, 18)
+	var bm := UiKit.margin(26, 13, 26, 10)
 	bm.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	bm.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_box.add_child(bm)
-	var bcol := UiKit.vbox(10)
+	var bcol := UiKit.vbox(6)
 	bcol.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	bm.add_child(bcol)
 
-	_speaker = UiKit.label("", 19, GameDefs.C_ICE)
+	_speaker = UiKit.label("", 17, GameDefs.C_ICE)
 	_speaker.add_theme_font_override("font", UiKit.bold_font())
 	bcol.add_child(_speaker)
 
-	_text = UiKit.wrapped("", 21, GameDefs.C_TEXT)
+	_text = UiKit.wrapped("", 20, GameDefs.C_TEXT)
 	_text.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	_text.add_theme_constant_override("line_spacing", 12)
+	_text.add_theme_constant_override("line_spacing", 7)
 	bcol.add_child(_text)
 
-	_caret = UiKit.label("", 15, GameDefs.C_ICE_DIM, HORIZONTAL_ALIGNMENT_RIGHT)
-	bcol.add_child(_caret)
+	# 继续指示符：悬浮在框右下角，不再占一整行高度
+	_caret = UiKit.label("", 14, GameDefs.C_ICE_DIM, HORIZONTAL_ALIGNMENT_RIGHT)
+	_caret.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT)
+	_caret.offset_left = -140.0
+	_caret.offset_top = -28.0
+	_caret.offset_right = -12.0
+	_caret.offset_bottom = -8.0
+	_caret.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	_box.add_child(_caret)
 
 
 func _build_choice_layer() -> void:
@@ -221,7 +267,7 @@ func _build_choice_layer() -> void:
 	_choice_layer.offset_left = 22
 	_choice_layer.offset_right = -(HUD_W + 32.0)
 	_choice_layer.offset_top = 84
-	_choice_layer.offset_bottom = 392
+	_choice_layer.offset_bottom = 330
 	_choice_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_choice_layer.visible = false
 	add_child(_choice_layer)
@@ -231,7 +277,7 @@ func _build_choice_layer() -> void:
 	ccol.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_choice_layer.add_child(ccol)
 
-	_choice_head = UiKit.label("", 19, GameDefs.C_GOLD)
+	_choice_head = UiKit.label("", 17, GameDefs.C_GOLD)
 	_choice_head.add_theme_font_override("font", UiKit.bold_font())
 	ccol.add_child(_choice_head)
 
@@ -241,8 +287,10 @@ func _build_choice_layer() -> void:
 	scroll.mouse_filter = Control.MOUSE_FILTER_PASS
 	ccol.add_child(scroll)
 
-	_choice_box = UiKit.vbox(12)
-	_choice_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	# 原神式：选项列不铺满整行，居中且限宽，视觉更轻
+	_choice_box = UiKit.vbox(10)
+	_choice_box.custom_minimum_size = Vector2(560, 0)
+	_choice_box.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 	_choice_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	scroll.add_child(_choice_box)
 

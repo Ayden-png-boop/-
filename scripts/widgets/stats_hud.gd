@@ -15,7 +15,7 @@ var _t: float = 0.0
 
 
 func _ready() -> void:
-	add_theme_constant_override("separation", 9)
+	add_theme_constant_override("separation", 6)
 	mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_build()
 	var gs := _state()
@@ -36,7 +36,7 @@ func _state() -> Node:
 
 func _build() -> void:
 	var header := UiKit.hbox(8)
-	_title_label = UiKit.label("迁徙状态", 18, GameDefs.C_ICE)
+	_title_label = UiKit.label("迁徙状态", 16, GameDefs.C_ICE)
 	_title_label.add_theme_font_override("font", UiKit.bold_font())
 	header.add_child(_title_label)
 	header.add_child(UiKit.hspacer(0))
@@ -44,7 +44,7 @@ func _build() -> void:
 	flex.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	flex.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	header.add_child(flex)
-	_chapter_label = UiKit.label("第 1 章", 15, GameDefs.C_MUTED)
+	_chapter_label = UiKit.label("第 1 章", 13, GameDefs.C_MUTED)
 	header.add_child(_chapter_label)
 	add_child(header)
 	add_child(UiKit.hsep(GameDefs.C_LINE, 1))
@@ -57,7 +57,7 @@ func _build() -> void:
 	add_child(UiKit.hsep(GameDefs.C_LINE, 1))
 	add_child(UiKit.spacer(2))
 
-	_inv_label = UiKit.label("随身档案", 17, GameDefs.C_GOLD)
+	_inv_label = UiKit.label("随身档案", 15, GameDefs.C_GOLD)
 	_inv_label.add_theme_font_override("font", UiKit.bold_font())
 	add_child(_inv_label)
 	_inv_chips = UiKit.hbox(6)
@@ -67,7 +67,7 @@ func _build() -> void:
 	_inv_chips2.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_inv_chips2)
 
-	_warn_label = UiKit.wrapped("", 14, GameDefs.C_WARN)
+	_warn_label = UiKit.wrapped("", 12, GameDefs.C_WARN)
 	_warn_label.visible = false
 	add_child(_warn_label)
 	# 让面板内容顶部对齐、底部留白
@@ -78,13 +78,13 @@ func _build() -> void:
 
 
 func _build_row(key: String) -> Control:
-	var row := UiKit.hbox(7)
+	var row := UiKit.hbox(6)
 	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var d: Dictionary = GameDefs.STATS[key]
 	var col: Color = d.get("color", GameDefs.C_ICE)
 
-	var name_l := UiKit.label(String(d.get("label", key)), 15, GameDefs.C_MUTED)
-	name_l.custom_minimum_size = Vector2(72, 20)
+	var name_l := UiKit.label(String(d.get("label", key)), 13, GameDefs.C_MUTED)
+	name_l.custom_minimum_size = Vector2(62, 18)
 	name_l.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0))
 	row.add_child(name_l)
 
@@ -92,7 +92,7 @@ func _build_row(key: String) -> Control:
 	bar.min_value = 0
 	bar.max_value = float(GameDefs.STAT_MAX)
 	bar.show_percentage = false
-	bar.custom_minimum_size = Vector2(0, 11)
+	bar.custom_minimum_size = Vector2(0, 9)
 	bar.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	bar.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -101,8 +101,8 @@ func _build_row(key: String) -> Control:
 	bar.add_theme_stylebox_override("fill", UiKit.box(col, 5))
 	row.add_child(bar)
 
-	var val := UiKit.label("0", 15, col, HORIZONTAL_ALIGNMENT_RIGHT)
-	val.custom_minimum_size = Vector2(34, 20)
+	var val := UiKit.label("0", 13, col, HORIZONTAL_ALIGNMENT_RIGHT)
+	val.custom_minimum_size = Vector2(28, 18)
 	row.add_child(val)
 
 	_rows[key] = {
@@ -173,12 +173,12 @@ func refresh() -> void:
 	var ev: Array = gs.evidence
 	var tk: Array = gs.techs
 	if ev.is_empty() and tk.is_empty():
-		_inv_chips.add_child(UiKit.chip("尚无", GameDefs.C_MUTED, 13))
+		_inv_chips.add_child(UiKit.chip("尚无", GameDefs.C_MUTED, 12))
 	else:
 		for e: Variant in ev:
-			_inv_chips.add_child(UiKit.chip(String(e), GameDefs.C_GOLD, 13))
+			_inv_chips.add_child(UiKit.chip(String(e), GameDefs.C_GOLD, 12))
 		for t: Variant in tk:
-			_inv_chips2.add_child(UiKit.chip(String(t), GameDefs.C_COOP, 13))
+			_inv_chips2.add_child(UiKit.chip(String(t), GameDefs.C_COOP, 12))
 
 	# 危急提示
 	var msgs: Array[String] = []
