@@ -88,6 +88,9 @@ var dim: float = 0.0                  ## 额外压暗（过场 / 弹窗时用）
 var _preset: Dictionary = {}
 var _tex: Texture2D = null
 var _snow: Array = []
+# 雪花形状模板：单位半径的六角晶枝，按「每两点为一段」存放，供 draw_multiline 使用
+var _flake_pts: PackedVector2Array = PackedVector2Array()   # 带分叉的完整晶体
+var _flake_simple: PackedVector2Array = PackedVector2Array() # 简化六芒星（远小雪花用）
 var _t: float = 0.0
 var _flash_col: Color = Color(1, 1, 1, 0)
 var _rng := RandomNumberGenerator.new()
@@ -341,8 +344,9 @@ func _rebuild_particles() -> void:
 			"r": rad,
 			"vy": _rng.randf_range(0.013, 0.052) * heft * (1.0 + density * 0.4),
 			"vx": _rng.randf_range(-0.012, 0.012),
-			"ph": _rng.randf() * TAU,
-			"a": _rng.randf_range(0.34, 0.94),
+		"ph": _rng.randf() * TAU,
+		"spin": _rng.randf_range(0.18, 0.55) * (1.0 if _rng.randf() < 0.5 else -1.0),
+		"a": _rng.randf_range(0.40, 0.96),
 		})
 
 
@@ -580,6 +584,28 @@ func _draw_overlays(R: Rect2) -> void:
 				PackedColorArray([ca, cb, cb]))
 
 
+func _build_flake_templates() -> void:
+	# 简化六芒星：6 条主枝
+	_flake_simple = PackedVector2Array()
+	for i: int in range(6):
+		var dir := Vector2.RIGHT.rotated(TAU * float(i) / 6.0)
+		_flake_simple.append(Vector2.ZERO)
+		_flake_simple.append(dir)
+	# 完整晶体：6 条主枝，各带两对分叉（0.42 处长叉、0.68 处短叉）
+	_flake_pts = PackedVector2Array()
+	for i: int in range(6):
+		var dir := Vector2.RIGHT.rotated(TAU * float(i) / 6.0)
+		var perp := dir.orthogonal()
+		_flake_pts.append(Vector2.ZERO)
+		_flake_pts.append(dir)
+		for spec: Variant in [[0.42, 0.36], [0.68, 0.26]]:
+			var base := dir * float(spec[0])
+			_flake_pts.append(base)
+			_flake_pts.append(base + perp * float(spec[1]))
+			_flake_pts.append(base)
+			_flake_pts.append(base - perp * float(spec[1]))
+
+
 func _draw_particles(R: Rect2) -> void:
 	var kind := String(_preset.get("particles", "snow"))
 	if kind == "none" or _snow.is_empty():
@@ -597,16 +623,32 @@ func _draw_particles(R: Rect2) -> void:
 			base = Color(1.0, 0.90, 0.62)
 			glow = 0.6
 		_:
-			base = Color(0.94, 0.99, 1.0)
+			base = Color(0.92, 0.98, 1.0)
 			glow = 1.0
+	var use_crystal := kind == "snow"
+	if use_crystal and _flake_pts.is_empty():
+		_build_flake_templates()
 	for p: Dictionary in _snow:
 		var pos := Vector2(R.position.x + float(p["x"]) * R.size.x,
 			R.position.y + float(p["y"]) * R.size.y)
 		var a := float(p["a"]) * glow
 		var r := float(p["r"]) * (0.8 if kind == "heat" else 1.0)
-		# 大雪花画「柔光外圈 + 实心核心」两层，边缘才不会像硬圆点
-		draw_circle(pos, r * 1.6, Color(base.r, base.g, base.b, clampf(a * 0.20, 0.0, 1.0)))
-		draw_circle(pos, r, Color(base.r, base.g, base.b, clampf(a, 0.0, 1.0)))
+		if use_crystal:
+			# 雪花晶枝：随下落缓慢自旋；远处小雪花用简化形，近处大雪花带分叉
+			var rot: float = float(p["ph"]) + _t * float(p.get("spin", 0.3))
+			var pts: PackedVector2Array = _flake_simple if r < 3.2 else _flake_pts
+			var w := clampf(1.35 / r, 0.16, 0.55)
+			draw_set_transform(shake_offset + pos, rot, Vector2(r, r))
+			if r >= 3.2:
+				# 柔光底层：宽而淡的一遍，模拟冰晶的朦胧感
+				draw_multiline(pts, Color(base.r, base.g, base.b, clampf(a * 0.25, 0.0, 1.0)), w * 3.0, true)
+			draw_multiline(pts, Color(base.r, base.g, base.b, clampf(a, 0.0, 1.0)), w, true)
+		else:
+			# 非雪花粒子（灰烬/水花/热浪）保持柔光圆点
+			draw_circle(shake_offset + pos, r * 1.6, Color(base.r, base.g, base.b, clampf(a * 0.20, 0.0, 1.0)))
+			draw_circle(shake_offset + pos, r, Color(base.r, base.g, base.b, clampf(a, 0.0, 1.0)))
+	# 恢复基础变换（后续暗角层按无旋转变换绘制）
+	draw_set_transform(shake_offset, 0.0, Vector2.ONE)
 	# 底部渐隐，让下方文字浮层更易读
 	var key := scene_key + "|vig" + str(snapshot_vignette())
 	var gt: GradientTexture2D = _grad_cache.get(key, null)
