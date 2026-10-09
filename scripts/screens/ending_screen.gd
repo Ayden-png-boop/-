@@ -179,6 +179,13 @@ func _build(ed: Dictionary) -> void:
 	btnrow.add_child(b_menu)
 	outer.add_child(btnrow)
 
+	# 音乐署名（CC-BY 4.0 要求）
+	var credit := UiKit.wrapped(
+		"背景音乐：Scott Buckley（www.scottbuckley.com.au）· CC-BY 4.0", 14, Color(0.42, 0.54, 0.65))
+	credit.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	credit.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	outer.add_child(credit)
+
 
 func _stat_row(key: String, v: float) -> Control:
 	var row := UiKit.hbox(9)

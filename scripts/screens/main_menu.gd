@@ -137,6 +137,7 @@ func _build() -> void:
 		Color(0.42, 0.56, 0.66))
 	ver.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	frow.add_child(ver)
+	frow.add_child(UiKit.label("背景音乐：Scott Buckley · CC-BY 4.0", 13, Color(0.42, 0.56, 0.66)))
 	frow.add_child(UiKit.label("F11 全屏　·　ESC 返回", 13, Color(0.42, 0.56, 0.66)))
 
 	_load_facts()

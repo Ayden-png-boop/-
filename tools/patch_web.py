@@ -25,31 +25,84 @@ html, body { height: 100%; }
   background: linear-gradient(180deg, #06121f 0%, #0a2237 100%);
   color: #cfe4f2; font-family: sans-serif; text-align: center;
   flex-direction: column; justify-content: center; align-items: center; gap: 18px; }
-@media (orientation: portrait) { #rotate-hint { display: flex; } }
+@media (orientation: portrait) { #rotate-hint:not([hidden]) { display: flex; } }
+#rotate-hint[hidden] { display: none !important; }
 #rotate-hint .icon { font-size: 64px; animation: rot 2s ease-in-out infinite; }
 @keyframes rot { 0%, 40% { transform: rotate(0); } 70%, 100% { transform: rotate(90deg); } }
 #rotate-hint .t1 { font-size: 22px; font-weight: 600; letter-spacing: 2px; }
 #rotate-hint .t2 { font-size: 14px; opacity: .6; letter-spacing: 4px; }
+#rotate-skip { margin-top: 26px; padding: 12px 28px; border-radius: 999px;
+  border: 1px solid rgba(120,180,220,.45); background: rgba(120,180,220,.08);
+  color: #cfe4f2; font-size: 15px; letter-spacing: 2px;
+  user-select: none; -webkit-user-select: none; touch-action: manipulation;
+  cursor: pointer; }
+#rotate-skip:active { background: rgba(120,180,220,.22); }
 #fs-btn { position: fixed; right: 10px; bottom: 10px; z-index: 9998; display: none;
   width: 42px; height: 42px; border-radius: 10px; border: 1px solid rgba(120,180,220,.35);
   background: rgba(6,18,31,.55); color: #cfe4f2; font-size: 19px; line-height: 40px;
   text-align: center; user-select: none; -webkit-user-select: none; touch-action: manipulation;
   cursor: pointer; }
+#load-hud { position: fixed; left: 0; right: 0; bottom: 15%; z-index: 9000;
+  display: none; flex-direction: column; align-items: center; gap: 10px;
+  color: #cfe4f2; font-family: sans-serif; pointer-events: none; }
+#load-hud .lb { font-size: 14px; letter-spacing: 2px; opacity: .9;
+  text-shadow: 0 1px 4px rgba(0,0,0,.6); }
+#load-hud .tip { font-size: 12px; letter-spacing: 1px; opacity: .55;
+  text-shadow: 0 1px 4px rgba(0,0,0,.6); }
+#load-bar { width: 62%; max-width: 340px; height: 6px; border-radius: 3px;
+  background: rgba(120,180,220,.18); overflow: hidden; }
+#load-bar .fill { width: 0%; height: 100%; border-radius: 3px;
+  background: linear-gradient(90deg, #4aa3c7, #7fd0ea); transition: width .3s; }
 </style>
-<div id="rotate-hint"><div class="icon">📱</div><div class="t1">请旋转手机横屏游玩</div><div class="t2">冰川信使 · 斑头雁的 2040</div></div>
+<div id="rotate-hint"><div class="icon">📱</div><div class="t1">请旋转手机横屏游玩</div><div class="t2">冰川信使 · 斑头雁的 2040</div><div id="rotate-skip">仍以竖屏继续 →</div></div>
+<div id="load-hud"><div class="lb" id="load-label">正在加载游戏资源… 0%</div><div id="load-bar"><div class="fill" id="load-fill"></div></div><div class="tip">首次加载约 20MB，手机网络下可能需要 1~2 分钟</div></div>
 <div id="fs-btn" title="全屏">⛶</div>
 <script>
 (function () {
+  // 横屏提示：sessionStorage 记忆「仍以竖屏继续」
+  var hint = document.getElementById('rotate-hint');
+  var skip = document.getElementById('rotate-skip');
+  var KEY = 'gcm-portrait-ok';
+  function hideHint() { hint.hidden = true; }
+  try { if (sessionStorage.getItem(KEY) === '1') hideHint(); } catch (e) {}
+  skip.addEventListener('click', function () {
+    try { sessionStorage.setItem(KEY, '1'); } catch (e) {}
+    hideHint();
+  });
+
   var b = document.getElementById('fs-btn');
-  if (!document.documentElement.requestFullscreen) return;
-  if (matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window) b.style.display = 'block';
-  b.addEventListener('click', function () {
-    if (document.fullscreenElement) document.exitFullscreen();
-    else document.documentElement.requestFullscreen().catch(function () {});
-  });
-  window.addEventListener('fullscreenchange', function () {
-    b.textContent = document.fullscreenElement ? '✕' : '⛶';
-  });
+  if (document.documentElement.requestFullscreen) {
+    if (matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window) b.style.display = 'block';
+    b.addEventListener('click', function () {
+      if (document.fullscreenElement) document.exitFullscreen();
+      else document.documentElement.requestFullscreen().catch(function () {});
+    });
+    window.addEventListener('fullscreenchange', function () {
+      b.textContent = document.fullscreenElement ? '✕' : '⛶';
+    });
+  }
+
+  // 加载进度 HUD：轮询 Godot 原生进度条数值，渲染醒目的百分比 + 进度条
+  var isTouch = matchMedia('(pointer: coarse)').matches || 'ontouchstart' in window;
+  if (!isTouch) return;
+  var hud = document.getElementById('load-hud');
+  var label = document.getElementById('load-label');
+  var fill = document.getElementById('load-fill');
+  hud.style.display = 'flex';
+  var timer = setInterval(function () {
+    var status = document.getElementById('status');
+    if (!status) {  // 加载完成，原生 overlay 已被移除
+      clearInterval(timer);
+      hud.style.display = 'none';
+      return;
+    }
+    var p = document.getElementById('status-progress');
+    var v = p && p.hasAttribute('value') ? Number(p.value) : 0;
+    var m = p && p.hasAttribute('max') ? Number(p.max) : 0;
+    var pct = m > 0 ? Math.min(100, Math.round(v / m * 100)) : 0;
+    label.textContent = '正在加载游戏资源… ' + pct + '%';
+    fill.style.width = pct + '%';
+  }, 250);
 })();
 </script>'''
 
@@ -88,18 +141,29 @@ def apply_cache_bust(s: str, web_dir: str) -> str:
         r'(<script src="' + re.escape(js_name) + r')(\?[^"]*)?(")',
         r'\g<1>?' + ver + r'\g<3>',
         s)
+    # 加载 splash 图加版本号（png 走 immutable 长缓存，内容更新必须换 URL）
+    splash = pck[:-4] + '.png'
+    s = re.sub(
+        r'(id="status-splash"[^>]*src="' + re.escape(splash) + r')(\?[^"]*)?(")',
+        r'\g<1>?' + ver + r'\g<3>',
+        s)
     print(f'cache-bust: {pck} {ver} ({size} bytes)')
     return s
 
 
 def apply_mobile_patch(s: str) -> str:
-    if MARK in s:
-        return s
     old_vp = '<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0">'
     new_vp = '<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">'
     if old_vp in s:
         s = s.replace(old_vp, new_vp)
+    # 已有旧版补丁则先剥离，保证重新注入的是最新版本（幂等更新）
+    if MARK in s:
+        s, n = re.subn(r'<!-- MOBILE-PATCH -->.*?</script>\n', '', s, flags=re.S)
+        if n != 1:
+            raise SystemExit(f'mobile-patch: expected 1 old block, found {n}; aborting')
+        print('mobile-patch: old block stripped')
     assert '</body>' in s, 'no </body> found'
+    assert MARK not in s, 'mobile-patch block not fully stripped'
     s = s.replace('</body>', INJECT + '\n</body>')
     print('mobile-patch: injected')
     return s

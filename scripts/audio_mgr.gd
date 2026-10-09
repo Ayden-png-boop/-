@@ -1,8 +1,9 @@
 extends Node
-## AudioMgr —— 全程序化音频（autoload 单例）。
+## AudioMgr —— 音频管理（autoload 单例）。
 ##
-## 项目不携带任何音频素材：风声、低频轰鸣与全部音效都在启动时用代码合成成
-## AudioStreamWAV，既避免版权问题，也让整个工程保持自包含、体积可控。
+## 背景音乐：assets/audio/bgm/<kind>.mp3（Scott Buckley 曲目，CC-BY 4.0，
+## 见同目录 CREDITS.md），裁成 74s 无缝循环；文件缺失时退回代码合成的
+## 风声/低频氛围音。音效与打字音仍全部由代码实时合成，保持自包含。
 
 const MIX_RATE := 22050
 const AMBIENCE_SECONDS := 4.0
@@ -18,6 +19,7 @@ var _type_idx: int = 0
 var _type_rng := RandomNumberGenerator.new()
 
 var _ambience_cache: Dictionary = {}
+var _bgm_cache: Dictionary = {}          ## 真实音乐文件缓存：kind -> AudioStream
 var _sfx_cache: Dictionary = {}
 var _voice_cache: Dictionary = {}
 var _current := ""
@@ -57,17 +59,40 @@ func _ready() -> void:
 # 对外接口
 # ===========================================================================
 ## kind: menu / calm / tense / finale / collapse
+## 优先加载 assets/audio/bgm/<kind>.mp3|ogg（真实配乐），缺失时退回程序合成氛围音。
 func play_bgm(kind: String) -> void:
 	if _is_headless() or kind == "":
 		return
 	if _current == kind and _bgm.playing:
 		return
 	_current = kind
-	if not _ambience_cache.has(kind):
-		_ambience_cache[kind] = _to_wav(_synth_ambience(kind), true)
-	_bgm.stream = _ambience_cache[kind]
+	var st := _load_bgm_stream(kind)
+	if st == null:
+		push_warning("AudioMgr: 未找到背景音乐文件 assets/audio/bgm/%s.mp3，回退到合成氛围音" % kind)
+		if not _ambience_cache.has(kind):
+			_ambience_cache[kind] = _to_wav(_synth_ambience(kind), true)
+		st = _ambience_cache[kind]
+	_bgm.stream = st
 	_bgm.volume_db = _db(_bgm_volume())
 	_bgm.play()
+
+
+func _load_bgm_stream(kind: String) -> Resource:
+	if _bgm_cache.has(kind):
+		return _bgm_cache[kind]
+	var st: Resource = null
+	for ext: String in [".mp3", ".ogg"]:
+		var p := "res://assets/audio/bgm/%s%s" % [kind, ext]
+		if ResourceLoader.exists(p):
+			st = load(p)
+			break
+	if st != null:
+		if st is AudioStreamMP3:
+			st.loop = true
+		elif st is AudioStreamOggVorbis:
+			st.loop = true
+		_bgm_cache[kind] = st
+	return st
 
 
 func stop_bgm() -> void:
