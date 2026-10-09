@@ -121,12 +121,17 @@ func typing_enabled() -> bool:
 
 
 # ---------------------------------------------------------------------------
-# 剧情配音：res://assets/audio/vo/<id>.mp3
+# 剧情配音：pck 内 res://assets/audio/vo/<id>.mp3（桌面端）
+#           或 Web 热加载缓存 user://media/v1/vo/<id>.mp3（VoiceFetch 下载）
 # ---------------------------------------------------------------------------
+const VO_USER_DIR := "user://media/v1/vo/"
+
+var _voice_token := 0             ## 播放令牌：等待下载期间玩家换页则放弃过期播放
+
 func has_voice(id: String) -> bool:
 	if id == "":
 		return false
-	return _voice_path(id) != ""
+	return _voice_path(id) != "" or _voice_fetcher_knows(id)
 
 
 func play_voice(id: String) -> void:
@@ -137,10 +142,32 @@ func play_voice(id: String) -> void:
 		return
 	var path := _voice_path(id)
 	if path == "":
+		# Web 热加载：语音还没落地 —— 插队下载，落地后接着播（最多等 10s）
+		var vf := _voice_fetcher()
+		if vf != null and vf.knows(id):
+			vf.prioritize(id)
+			_play_voice_when_ready(id)
 		return
-	if not _voice_cache.has(path):
-		_voice_cache[path] = load(path)
-	var st: Resource = _voice_cache.get(path, null)
+	_voice_token += 1
+	_play_stream_at(_load_voice_stream(path), _voice_token)
+
+
+func _play_voice_when_ready(id: String) -> void:
+	_voice_token += 1
+	var token := _voice_token
+	var waited := 0.0
+	while waited < 10.0:
+		await get_tree().create_timer(0.15).timeout
+		waited += 0.15
+		if token != _voice_token or _is_headless():
+			return                  # 玩家已离开本节点或已换语音
+		var p := _voice_path(id)
+		if p != "":
+			_play_stream_at(_load_voice_stream(p), token)
+			return
+
+
+func _play_stream_at(st: Resource, _token: int) -> void:
 	if st == null:
 		return
 	_voice.stop()
@@ -149,17 +176,56 @@ func play_voice(id: String) -> void:
 	_voice.play()
 
 
+## user:// 下的是原始 mp3 字节（无导入元数据），需手动包装成流
+func _load_voice_stream(path: String) -> Resource:
+	if _voice_cache.has(path):
+		return _voice_cache[path]
+	var st: Resource = null
+	if path.begins_with("user://"):
+		var f := FileAccess.open(path, FileAccess.READ)
+		if f != null:
+			var bytes := f.get_buffer(f.get_length())
+			f.close()
+			if path.ends_with(".mp3"):
+				var mp3 := AudioStreamMP3.new()
+				mp3.data = bytes
+				st = mp3
+			elif path.ends_with(".ogg"):
+				st = AudioStreamOggVorbis.load_from_buffer(bytes)
+	else:
+		st = load(path)
+	_voice_cache[path] = st
+	return st
+
+
 func stop_voice() -> void:
+	_voice_token += 1
 	if _voice != null and _voice.playing:
 		_voice.stop()
 
 
 func _voice_path(id: String) -> String:
+	# Web 热加载缓存优先，其次 pck（桌面端）
+	for ext: String in [".mp3", ".ogg", ".wav"]:
+		var u := VO_USER_DIR + id + ext
+		if FileAccess.file_exists(u):
+			return u
 	for ext: String in [".mp3", ".ogg", ".wav"]:
 		var p := "res://assets/audio/vo/%s%s" % [id, ext]
 		if ResourceLoader.exists(p):
 			return p
 	return ""
+
+
+func _voice_fetcher() -> Node:
+	if not OS.has_feature("web"):
+		return null
+	return get_node_or_null("/root/VoiceFetch")
+
+
+func _voice_fetcher_knows(id: String) -> bool:
+	var vf := _voice_fetcher()
+	return vf != null and vf.knows(id)
 
 
 func _apply_volumes() -> void:

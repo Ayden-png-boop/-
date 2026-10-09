@@ -18,7 +18,7 @@ const VIDEO_SIZE := Vector2(848, 480)
 ## Web 导出时 CG 视频不打进 pck（65MB 太大，拖慢首屏），改为运行时按下面的
 ## 相对路径按需下载，落到 user:// 缓存后再交给 VideoStreamTheora 播放。
 const VIDEO_URL_DIR := "video/"
-const VIDEO_USER_DIR := "user://cg/"
+const VIDEO_USER_DIR := "user://media/v1/cg/"
 
 ## 每个场景的画面配方
 static var PRESETS := {
@@ -280,22 +280,11 @@ func _poll_video_ready() -> void:
 		push_warning("BgArt: CG %s 加载超时，保持静态背景" % key)
 
 
-## 常驻下载器（懒创建，全游戏唯一）
-static var _fetcher_ref: Node = null
-
+## 常驻下载器（autoload，全游戏唯一）
 func _fetcher() -> Node:
 	if not OS.has_feature("web"):
 		return null
-	if _fetcher_ref != null and is_instance_valid(_fetcher_ref):
-		return _fetcher_ref
-	var script: GDScript = load("res://scripts/video_fetch.gd")
-	if script == null:
-		return null
-	var pf: Node = script.new()
-	pf.name = "VideoFetch"
-	_fetcher_ref = pf
-	get_tree().root.add_child.call_deferred(pf)
-	return pf
+	return get_node_or_null("/root/VideoFetch")
 
 
 func _user_path(key: String) -> String:

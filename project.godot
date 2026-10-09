@@ -26,6 +26,8 @@ StoryData="*res://scripts/story_data.gd"
 AudioMgr="*res://scripts/audio_mgr.gd"
 Navigator="*res://scripts/navigator.gd"
 DisplayMgr="*res://scripts/display_mgr.gd"
+VoiceFetch="*res://scripts/voice_fetch.gd"
+VideoFetch="*res://scripts/video_fetch.gd"
 
 [display]
 

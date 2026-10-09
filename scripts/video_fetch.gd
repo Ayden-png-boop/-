@@ -11,7 +11,7 @@ extends Node
 ## BgArt 通过轮询 user:// 文件是否落盘来感知完成（解耦，互不持有引用）。
 
 const URL_DIR := "video/"
-const USER_DIR := "user://cg/"
+const USER_DIR := "user://media/v1/cg/"
 const WAIT_TIMEOUT_S := 60.0
 
 var _queue: Array = []          ## 待下载 key（头部最优先）
@@ -28,11 +28,26 @@ func _start() -> void:
 	if _started:
 		return
 	_started = true
+	if not OS.has_feature("web"):
+		return                          # 桌面/移动端视频在 pck 里，无需下载
 	await get_tree().create_timer(2.5).timeout
 	if not is_inside_tree():
 		return
 	if _queue.is_empty():
 		_queue = _story_video_keys()
+	# 带宽分配：语音是剧情阻塞资源（P0），等语音预取全部完成再铺视频（P1）。
+	# 最多等 45s 兜底；prioritize() 可随时越过此等待直接开播（P0 抢占）。
+	var vf := get_node_or_null("/root/VoiceFetch")
+	if vf == null:
+		var t := Engine.get_main_loop()
+		if t is SceneTree:
+			vf = (t as SceneTree).root.get_node_or_null("VoiceFetch")
+	var waited := 0.0
+	while vf != null and not vf.all_done() and waited < 45.0:
+		await get_tree().create_timer(0.5).timeout
+		waited += 0.5
+		if not is_inside_tree():
+			return
 	_pump()
 
 
