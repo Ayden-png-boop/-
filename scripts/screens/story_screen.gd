@@ -33,6 +33,7 @@ var _caret: Label
 var _choice_layer: Control
 var _choice_head: Label
 var _choice_box: VBoxContainer
+var _choice_inline: VBoxContainer   ## 对话框内嵌的简洁选项列表（一行一个）
 
 var _popup: PopupLayer
 var _qte: QtePanel
@@ -251,6 +252,11 @@ func _build_textbox() -> void:
 	_text.add_theme_constant_override("line_spacing", 7)
 	bcol.add_child(_text)
 
+	# 内嵌简洁选项列表：显示选项时占用正文位置，一行一个
+	_choice_inline = UiKit.vbox(6)
+	_choice_inline.visible = false
+	bcol.add_child(_choice_inline)
+
 	# 继续指示符：悬浮在框右下角，不再占一整行高度
 	_caret = UiKit.label("", 14, GameDefs.C_ICE_DIM, HORIZONTAL_ALIGNMENT_RIGHT)
 	_caret.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT)
@@ -271,7 +277,13 @@ func _fit_box_after_frame() -> void:
 	var fs := float(_text.get_theme_font_size("font_size"))
 	var sf := float(_speaker.get_theme_font_size("font_size"))
 	var content := 14.0 + sf * 1.35 + 4.0 + fs * 1.45 * float(_text.get_line_count())
-	var h := clampf(content, BOX_H_MIN, BOX_H_MAX)
+	_fit_box_to(clampf(content, BOX_H_MIN, BOX_H_MAX))
+
+
+## 直接把对话框高度收到指定值（底部锚点不变，向上收放）
+func _fit_box_to(h: float) -> void:
+	if _box == null:
+		return
 	var tw := create_tween()
 	tw.tween_property(_box, "offset_top", -16.0 - h, 0.18)\
 		.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
@@ -521,6 +533,9 @@ func _apply_visual(nd: Dictionary, ntype: String) -> void:
 # ===========================================================================
 func _show_text(nd: Dictionary, ntype: String) -> void:
 	_set_box_visible(true)
+	_text.visible = true
+	if _choice_inline != null:
+		_choice_inline.visible = false
 	var speaker := String(nd.get("speaker", ""))
 	if speaker == "":
 		speaker = "雪翼" if ntype == "dialogue" else "旁白"
@@ -658,6 +673,13 @@ func _advance() -> void:
 # 选项
 # ===========================================================================
 func _hide_choices() -> void:
+	if _choice_inline != null:
+		_choice_inline.visible = false
+		for c: Node in _choice_inline.get_children():
+			_choice_inline.remove_child(c)
+			c.queue_free()
+	if _text != null:
+		_text.visible = true
 	if _choice_layer == null:
 		return
 	_choice_layer.visible = false
@@ -668,15 +690,22 @@ func _hide_choices() -> void:
 
 func _show_choices(nd: Dictionary) -> void:
 	var gs := get_node_or_null("/root/GameState")
-	if gs == null or _choice_box == null:
+	if gs == null or _choice_inline == null:
 		return
-	for c: Node in _choice_box.get_children():
-		_choice_box.remove_child(c)
+	for c: Node in _choice_inline.get_children():
+		_choice_inline.remove_child(c)
 		c.queue_free()
 
-	_choice_head.text = String(nd.get("prompt", "▼ 做出你的选择 ▼"))
-	_choice_layer.visible = true
+	# 选项直接在对话框内展示：说话人行显示提示语，正文让位给选项列表
+	_set_box_visible(true)
+	_speaker.text = String(nd.get("prompt", "做出你的选择"))
+	_speaker.add_theme_color_override("font_color", GameDefs.C_GOLD)
+	_text.visible = false
+	_text.text = ""
 	_caret.text = ""
+	_choice_inline.visible = true
+	# 复用 _choice_layer.visible 作为状态位：等待选择期间点击不会推进剧情
+	_choice_layer.visible = true
 
 	var opts: Array = nd.get("options", []) if nd.get("options") is Array else []
 	for i: int in range(opts.size()):
@@ -687,16 +716,42 @@ func _show_choices(nd: Dictionary) -> void:
 		var locked := false
 		if o.has("require"):
 			locked = not gs.check_all(o["require"])
-		var card := ChoiceCard.new()
-		card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		_choice_box.add_child(card)
-		card.setup(o, i, locked)
-		if not locked:
-			card.pressed.connect(_on_choice.bind(o))
+		var btn := Button.new()
+		# 简洁展示：只显示选项本身，不显示后果与数值变化
+		btn.text = "▸ " + String(o.get("text", ""))
+		btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		btn.focus_mode = Control.FOCUS_NONE
+		btn.mouse_filter = Control.MOUSE_FILTER_STOP
+		btn.custom_minimum_size = Vector2(0, 34)
+		btn.add_theme_font_size_override("font_size", 18)
+		btn.add_theme_color_override("font_color",
+			GameDefs.C_MUTED if locked else GameDefs.C_TEXT)
+		btn.add_theme_color_override("font_hover_color", GameDefs.C_ICE)
+		btn.add_theme_color_override("font_pressed_color", GameDefs.C_ICE)
+		btn.add_theme_color_override("font_disabled_color", GameDefs.C_MUTED)
+		btn.add_theme_stylebox_override("normal",
+			UiKit.box(Color(1, 1, 1, 0.04), 8, Color(0.16, 0.36, 0.5, 0.4), 1))
+		btn.add_theme_stylebox_override("hover",
+			UiKit.box(Color(0.12, 0.3, 0.42, 0.4), 8, Color(0.3, 0.6, 0.8, 0.8), 1))
+		btn.add_theme_stylebox_override("pressed",
+			UiKit.box(Color(0.16, 0.4, 0.55, 0.55), 8, Color(0.3, 0.6, 0.8, 0.9), 1))
+		btn.add_theme_stylebox_override("disabled",
+			UiKit.box(Color(1, 1, 1, 0.02), 8, Color(1, 1, 1, 0.08), 1))
+		if locked:
+			btn.disabled = true
+		else:
+			btn.pressed.connect(_on_choice.bind(o))
+		_choice_inline.add_child(btn)
 
-	_choice_layer.modulate.a = 0.0
+	# 高度按选项数量收放
+	var n := float(_choice_inline.get_child_count())
+	var h := clampf(14.0 + 17.0 * 1.35 + 6.0 + (34.0 * n + 6.0 * maxf(n - 1.0, 0.0)) + 8.0,
+		BOX_H_MIN, 240.0)
+	_fit_box_to(h)
+
+	_choice_inline.modulate.a = 0.0
 	var tw := create_tween()
-	tw.tween_property(_choice_layer, "modulate:a", 1.0, 0.22)
+	tw.tween_property(_choice_inline, "modulate:a", 1.0, 0.18)
 
 
 func _on_choice(opt: Dictionary) -> void:
@@ -972,6 +1027,7 @@ func _toast_error(msg: String) -> void:
 	if _text == null:
 		return
 	_set_box_visible(true)
+	_text.visible = true
 	_error_state = true
 	_pending_choice = {}
 	_pending_qte = {}
