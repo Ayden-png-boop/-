@@ -1,14 +1,22 @@
 #!/usr/bin/env python3
-"""Web 导出后处理：手机适配补丁（竖屏旋转提示 + 全屏按钮）。
+"""Web 导出后处理，每次 Godot 重新导出后必须重新执行：
 
-用法：python tools/patch_web.py [index.html 路径]
-每次 Godot 重新导出 Web 后需要重新执行（导出器会覆盖 index.html）。
-幂等：重复执行无副作用。
+1. 手机适配补丁：竖屏旋转提示 + 全屏按钮（幂等注入）
+2. 缓存穿透：pck/js 引用加版本号（?v=时间戳）。
+   服务器对 pck/js 下发 immutable 长缓存，URL 不变的话浏览器永远拿旧文件；
+   给 mainPack 和 script src 拼上按 pck 修改时间生成的版本号即可强制更新，
+   同时保持长缓存收益（URL 变了才会重新下载）。
+
+用法：python tools/patch_web.py [web 目录或 index.html 路径]
 """
 import io
+import os
+import re
 import sys
+from datetime import datetime
 
 MARK = 'MOBILE-PATCH'
+BUST_MARK = '/*CACHE-BUST*/'
 
 INJECT = '''<!-- MOBILE-PATCH -->
 <style>
@@ -46,18 +54,68 @@ html, body { height: 100%; }
 </script>'''
 
 
-def main() -> None:
-    path = sys.argv[1] if len(sys.argv) > 1 else 'web/index.html'
-    s = io.open(path, encoding='utf-8').read()
+def find_pck(web_dir: str) -> str:
+    """找 web 目录下的主 pck（排除 .gz）。"""
+    cands = [f for f in os.listdir(web_dir) if f.endswith('.pck')]
+    if not cands:
+        raise SystemExit('no .pck found in ' + web_dir)
+    # 取最大的那个（主包）
+    return max(cands, key=lambda f: os.path.getsize(os.path.join(web_dir, f)))
+
+
+def apply_cache_bust(s: str, web_dir: str) -> str:
+    pck = find_pck(web_dir)
+    ver = 'v' + datetime.fromtimestamp(os.path.getmtime(os.path.join(web_dir, pck))).strftime('%Y%m%d%H%M')
+    size = os.path.getsize(os.path.join(web_dir, pck))
+    js_name = pck[:-4] + '.js'
+
+    block = (
+        f'{BUST_MARK}\n'
+        f"const PCK_VER = '{ver}';\n"
+        f"GODOT_CONFIG['mainPack'] = `{pck}?${{PCK_VER}}`;\n"
+        f"GODOT_CONFIG['fileSizes'][`{pck}?${{PCK_VER}}`] = {size};\n"
+    )
+    # 替换旧版本块或插入新块
+    if BUST_MARK in s:
+        s = re.sub(re.escape(BUST_MARK) + r'.*?\n(?=const engine)', block, s, flags=re.S)
+    else:
+        anchor = 'const engine = new Engine(GODOT_CONFIG);'
+        assert anchor in s, 'GODOT_CONFIG anchor not found'
+        s = s.replace(anchor, block + anchor)
+
+    # 引擎 JS 引用加版本号（旧版可能带 ?v=...）
+    s = re.sub(
+        r'(<script src="' + re.escape(js_name) + r')(\?[^"]*)?(")',
+        r'\g<1>?' + ver + r'\g<3>',
+        s)
+    print(f'cache-bust: {pck} {ver} ({size} bytes)')
+    return s
+
+
+def apply_mobile_patch(s: str) -> str:
     if MARK in s:
-        print('already patched:', path)
-        return
+        return s
     old_vp = '<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0">'
     new_vp = '<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, viewport-fit=cover">'
     if old_vp in s:
         s = s.replace(old_vp, new_vp)
     assert '</body>' in s, 'no </body> found'
     s = s.replace('</body>', INJECT + '\n</body>')
+    print('mobile-patch: injected')
+    return s
+
+
+def main() -> None:
+    arg = sys.argv[1] if len(sys.argv) > 1 else 'web'
+    if os.path.isdir(arg):
+        path = os.path.join(arg, 'index.html')
+        web_dir = arg
+    else:
+        path = arg
+        web_dir = os.path.dirname(arg) or '.'
+    s = io.open(path, encoding='utf-8').read()
+    s = apply_mobile_patch(s)
+    s = apply_cache_bust(s, web_dir)
     io.open(path, 'w', encoding='utf-8', newline='\n').write(s)
     print('patched:', path)
 

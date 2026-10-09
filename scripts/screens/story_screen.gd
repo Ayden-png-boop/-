@@ -53,6 +53,8 @@ var _advance_ready: bool = false
 var _busy: bool = false
 var _error_state: bool = false
 var _auto_timer: float = 0.0
+# 非自动模式下的闲置计时：文本展示完毕后长时间无点击则兜底推进
+var _idle_timer: float = 0.0
 var _blink: float = 0.0
 var _type_marks: int = 0            ## 打字音的下一个触发字数门槛
 
@@ -538,9 +540,11 @@ func _show_text(nd: Dictionary, ntype: String) -> void:
 	if _choice_inline != null:
 		_choice_inline.visible = false
 	var full_text := String(nd.get("text", ""))
+	var sp_raw := String(nd.get("speaker", ""))
 	# 镜头语言/环境细节不进对话框：以电影字幕形式浮在画面上并自动推进
-	if ntype == "narration" and (bool(nd.get("cinematic", false)) or _is_cinematic_text(full_text)):
-		_show_cinematic_caption(full_text, String(nd.get("id", "")))
+	if ntype == "narration" and (bool(nd.get("cinematic", false))
+			or _is_cinematic_text(full_text) or _is_cinematic_speaker(sp_raw)):
+		_show_cinematic_caption(full_text)
 		return
 	var speaker := String(nd.get("speaker", ""))
 	if speaker == "":
@@ -565,6 +569,7 @@ func _show_text(nd: Dictionary, ntype: String) -> void:
 	_text.visible_characters = 0
 	_caret.text = ""
 	_auto_timer = 0.0
+	_idle_timer = 0.0
 	_type_marks = 0
 	# 配音：该节点有对应音频就播（换节点时上一句会被自动打断）
 	if not fast_mode:
@@ -582,6 +587,10 @@ func _set_box_visible(v: bool) -> void:
 # 电影字幕：镜头语言/环境细节不走对话框，浮在画面下三分之一并自动推进
 # ===========================================================================
 var _caption: Label = null
+
+
+func _is_cinematic_speaker(sp: String) -> bool:
+	return sp.contains("镜头") or sp.contains("环境") or sp.contains("细节")
 
 
 func _is_cinematic_text(t: String) -> bool:
@@ -613,7 +622,7 @@ func _ensure_caption() -> Label:
 	return _caption
 
 
-func _show_cinematic_caption(text: String, vo_id: String) -> void:
+func _show_cinematic_caption(text: String) -> void:
 	_set_box_visible(false)
 	_hide_choices()
 	var cap := _ensure_caption()
@@ -622,11 +631,8 @@ func _show_cinematic_caption(text: String, vo_id: String) -> void:
 	cap.modulate.a = 0.0
 	_advance_ready = false
 	_typing = false
-	# 镜头语言旁白同样可能有配音
-	if not fast_mode:
-		var am := get_node_or_null("/root/AudioMgr")
-		if am != null:
-			am.play_voice(vo_id)
+	# 镜头字幕不配语音，顺带掐掉上一节点残留的配音
+	_voice_stop()
 	var dur := clampf(2.0 + float(text.length()) * 0.045, 2.6, 6.0)
 	var tw := create_tween()
 	tw.tween_property(cap, "modulate:a", 1.0, 0.45)
@@ -661,12 +667,26 @@ func _process(delta: float) -> void:
 
 	if _advance_ready:
 		_caret.modulate.a = 0.35 + 0.65 * (0.5 + 0.5 * sin(_blink * 4.0))
-		if not _busy and _choice_layer != null and not _choice_layer.visible \
-				and gs != null and bool(gs.auto_advance):
+		if _busy or (_choice_layer != null and _choice_layer.visible):
+			_idle_timer = 0.0
+			return
+		# 自动模式：按设置间隔推进
+		if gs != null and bool(gs.auto_advance):
 			_auto_timer += delta
 			if _auto_timer >= float(gs.auto_delay):
 				_auto_timer = 0.0
 				_advance()
+			return
+		# 手动模式兜底：长时间无点击也继续走，避免画面停死
+		_idle_timer += delta
+		if _idle_timer >= _idle_limit():
+			_idle_timer = 0.0
+			_advance()
+
+
+## 手动模式的闲置推进上限：给足阅读时间（按文本长度放宽），封顶 30 秒
+func _idle_limit() -> float:
+	return clampf(10.0 + float(_full.length()) * 0.12, 12.0, 30.0)
 
 
 ## 逐字显示时的键盘敲击音。标点与空白不发声——否则语速一快就成了
