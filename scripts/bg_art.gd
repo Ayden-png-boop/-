@@ -15,6 +15,10 @@ const BG_EXTS := [".png", ".jpg", ".jpeg", ".webp"]
 ## 因此显示尺寸从 854 改为 848（编码帧与显示帧完全一致）。
 const VIDEO_DIR := "res://assets/video/"
 const VIDEO_SIZE := Vector2(848, 480)
+## Web 导出时 CG 视频不打进 pck（65MB 太大，拖慢首屏），改为运行时按下面的
+## 相对路径按需下载，落到 user:// 缓存后再交给 VideoStreamTheora 播放。
+const VIDEO_URL_DIR := "video/"
+const VIDEO_USER_DIR := "user://cg/"
 
 ## 每个场景的画面配方
 static var PRESETS := {
@@ -88,6 +92,9 @@ var _t: float = 0.0
 var _flash_col: Color = Color(1, 1, 1, 0)
 var _rng := RandomNumberGenerator.new()
 var _player: VideoStreamPlayer = null
+var _wait_timer: Timer = null    ## 轮询「CG 已下载到 user://」的定时器
+var _wait_key := ""
+var _wait_elapsed := 0.0
 
 static var _tex_cache: Dictionary = {}
 static var _grad_cache: Dictionary = {}
@@ -105,6 +112,8 @@ func _ready() -> void:
 	set_scene(scene_key)
 	if video_key != "":
 		set_video(video_key)
+	# Web：确保常驻 CG 下载器存在（首屏后即开始按剧情顺序预取）
+	_fetcher()
 
 
 func _exit_tree() -> void:
@@ -147,21 +156,28 @@ func set_video(key: String) -> void:
 	if key == "":
 		_player.stop()
 		_player.visible = false
+		_wait_key = ""
+		if _wait_timer != null:
+			_wait_timer.stop()
 		queue_redraw()
 		return
-	var stream: VideoStream = _load_video(key)
-	if stream == null:
-		push_warning("BgArt: 找不到 CG 片段 %s，回退静态背景" % key)
-		_player.stop()
-		_player.visible = false
-		queue_redraw()
-		return
-	_player.stream = stream
-	_player.visible = true
-	_apply_video_volume()
-	_layout_video()
-	_player.play()
-	queue_redraw()
+	# 1) 已在内存里
+	if _video_cache.has(key):
+		var cached: VideoStream = _video_cache[key]
+		if cached != null:
+			_play_stream(cached)
+			return
+	# 2) pck 内资源（桌面端）：同步加载
+	var p := VIDEO_DIR + key + ".ogv"
+	if ResourceLoader.exists(p):
+		var r: Resource = load(p)
+		if r is VideoStream:
+			_video_cache[key] = r
+			_play_stream(r)
+			return
+	# 3) Web 拆包：CG 不在 pck 里，交给常驻下载器按需拉取到 user:// 后再播。
+	#    下载期间保持程序化静态背景，就绪后自动切到视频，不会黑屏。
+	_request_video(key)
 
 
 ## 关闭/打开视频（设置项切换用）。关闭时保留当前镜头 key，重开会继续播。
@@ -192,6 +208,9 @@ func _ensure_player() -> void:
 		return
 	_player = VideoStreamPlayer.new()
 	_player.name = "VideoLayer"
+	# 必须 expand：否则视频按原生 848x480 画在控件左上角，右侧/底部留黑边，
+	# _layout_video() 设置的 size 不会生效。expand 后 size 才是真正的显示矩形。
+	_player.expand = true
 	# z_index = -1：让视频画在 BgArt 自己的 _draw() 之下，
 	# 这样雪花、暗角、压暗层仍然盖在 CG 上面，文字依旧可读。
 	_player.z_index = -1
@@ -202,17 +221,94 @@ func _ensure_player() -> void:
 	add_child(_player)
 
 
-func _load_video(key: String) -> VideoStream:
-	if _video_cache.has(key):
-		return _video_cache[key]
-	var p := VIDEO_DIR + key + ".ogv"
-	var s: VideoStream = null
-	if ResourceLoader.exists(p):
-		var r: Resource = load(p)
-		if r is VideoStream:
-			s = r
-	_video_cache[key] = s
-	return s
+func _play_stream(stream: VideoStream) -> void:
+	_player.stream = stream
+	_player.visible = true
+	_apply_video_volume()
+	_layout_video()
+	_player.play()
+	queue_redraw()
+
+
+# ---------------------------------------------------------------------------
+# CG 按需加载（Web 拆包）
+# ---------------------------------------------------------------------------
+## 下载由常驻节点 VideoFetch 负责（切屏不会中断），BgArt 只负责：
+##   请求插队 -> 轮询 user:// 缓存文件落盘 -> 落地后自动切到视频。
+## 下载期间保持程序化静态背景，不会黑屏。
+func _request_video(key: String) -> void:
+	# 上次会话已经下载过，直接复用
+	var us := _user_stream(key)
+	if us != null:
+		_video_cache[key] = us
+		if video_key == key:
+			_play_stream(us)
+		return
+	var pf := _fetcher()
+	if pf == null:
+		push_warning("BgArt: 找不到 CG 片段 %s，回退静态背景" % key)
+		return
+	pf.prioritize(key)
+	_wait_key = key
+	_wait_elapsed = 0.0
+	if _wait_timer == null:
+		_wait_timer = Timer.new()
+		_wait_timer.wait_time = 0.4
+		_wait_timer.timeout.connect(_poll_video_ready)
+		add_child(_wait_timer)
+	_wait_timer.start()
+
+
+func _poll_video_ready() -> void:
+	var key := _wait_key
+	if key == "" or video_key != key:
+		_wait_timer.stop()
+		return
+	if FileAccess.file_exists(_user_path(key)):
+		_wait_timer.stop()
+		_wait_key = ""
+		var vs := _user_stream(key)
+		if vs != null:
+			_video_cache[key] = vs
+			if video_key == key:
+				_play_stream(vs)
+		return
+	_wait_elapsed += float(_wait_timer.wait_time)
+	if _wait_elapsed > 60.0:
+		_wait_timer.stop()
+		_wait_key = ""
+		push_warning("BgArt: CG %s 加载超时，保持静态背景" % key)
+
+
+## 常驻下载器（懒创建，全游戏唯一）
+static var _fetcher_ref: Node = null
+
+func _fetcher() -> Node:
+	if not OS.has_feature("web"):
+		return null
+	if _fetcher_ref != null and is_instance_valid(_fetcher_ref):
+		return _fetcher_ref
+	var script: GDScript = load("res://scripts/video_fetch.gd")
+	if script == null:
+		return null
+	var pf: Node = script.new()
+	pf.name = "VideoFetch"
+	_fetcher_ref = pf
+	get_tree().root.add_child.call_deferred(pf)
+	return pf
+
+
+func _user_path(key: String) -> String:
+	return VIDEO_USER_DIR + key + ".ogv"
+
+
+func _user_stream(key: String) -> VideoStream:
+	var up := _user_path(key)
+	if not FileAccess.file_exists(up):
+		return null
+	var vs := VideoStreamTheora.new()
+	vs.file = up
+	return vs
 
 
 ## cover 布局：等比铺满，多余部分被 clip_contents 裁掉
