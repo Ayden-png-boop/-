@@ -202,6 +202,13 @@ func set_video_volume(v: float) -> void:
 		_player.volume_db = linear_to_db(clampf(v, 0.0001, 1.0))
 
 
+## 弹窗等全屏遮挡时暂停背景视频（保留进度），关闭后恢复播放
+func set_video_paused(paused: bool) -> void:
+	if _player == null:
+		return
+	_player.paused = paused
+
+
 func _video_playing() -> bool:
 	return _player != null and _player.visible and _player.is_playing()
 

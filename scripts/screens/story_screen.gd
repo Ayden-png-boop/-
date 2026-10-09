@@ -466,17 +466,16 @@ func _goto(node_id: String) -> void:
 			_hide_choices()
 			_set_box_visible(false)
 			_busy = true
+			_voice_stop()   # 弹窗内容不需要配音，掐掉上一句残留语音
 			var p: Dictionary = nd.get("popup", {}) if nd.get("popup") is Dictionary else {}
 			var lines: Array = p.get("lines", []) if p.get("lines") is Array else []
 			var nxt_p := String(nd.get("next", ""))
 			_popup.fast_mode = fast_mode
-			if not fast_mode:
-				var am_p := get_node_or_null("/root/AudioMgr")
-				if am_p != null:
-					am_p.play_voice(String(nd.get("id", "")))
+			_bg.set_video_paused(true)   # 弹窗打开时暂停后方视频
 			_popup.open(String(p.get("title", "简报")), lines, String(p.get("tone", "info")),
 				func() -> void:
 					_busy = false
+					_bg.set_video_paused(false)   # 关闭弹窗后恢复播放
 					_goto(nxt_p))
 		"qte":
 			_hide_choices()
