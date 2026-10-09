@@ -10,6 +10,9 @@ const CODEX_SCENE := "res://scenes/codex_screen.tscn"
 const ENDING_SCENE := "res://scenes/ending_screen.tscn"
 
 const HUD_W := 186.0
+## 对话框高度自适应范围：最矮约为原高的一半，长文本自动长高防裁切
+const BOX_H_MIN := 96.0
+const BOX_H_MAX := 180.0
 const TOP_H := 62.0
 
 var _hud_wrap: Control
@@ -161,8 +164,8 @@ func _build_hud() -> void:
 	hud_wrap.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(hud_wrap)
 
-	var hud_panel := UiKit.panel(Color(0.031, 0.071, 0.114, 0.72), 12, GameDefs.C_LINE, 1, 0)
-	# STOP：点击数值面板不会推进剧情
+	# 无框化：去掉底色与描边，只保留 STOP 语义（点击数值区不会推进剧情）
+	var hud_panel := UiKit.panel(Color(0, 0, 0, 0), 0, Color(0, 0, 0, 0), 0, 0)
 	hud_panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	hud_wrap.add_child(hud_panel)
 	var hud_margin := UiKit.margin(12, 11, 12, 11)
@@ -212,7 +215,7 @@ func _build_textbox() -> void:
 	_box.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_WIDE)
 	_box.offset_left = 22
 	_box.offset_right = -(HUD_W + 32.0)
-	_box.offset_top = -196
+	_box.offset_top = -112
 	_box.offset_bottom = -16
 	_box.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	add_child(_box)
@@ -226,24 +229,24 @@ func _build_textbox() -> void:
 
 	var accent := ColorRect.new()
 	accent.color = GameDefs.C_ICE
-	accent.position = Vector2(0, 16)
-	accent.size = Vector2(3, 40)
+	accent.position = Vector2(0, 12)
+	accent.size = Vector2(3, 28)
 	accent.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_box.add_child(accent)
 
-	var bm := UiKit.margin(26, 13, 26, 10)
+	var bm := UiKit.margin(22, 8, 22, 6)
 	bm.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	bm.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_box.add_child(bm)
-	var bcol := UiKit.vbox(6)
+	var bcol := UiKit.vbox(4)
 	bcol.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	bm.add_child(bcol)
 
-	_speaker = UiKit.label("", 17, GameDefs.C_ICE)
+	_speaker = UiKit.label("", 16, GameDefs.C_ICE)
 	_speaker.add_theme_font_override("font", UiKit.bold_font())
 	bcol.add_child(_speaker)
 
-	_text = UiKit.wrapped("", 20, GameDefs.C_TEXT)
+	_text = UiKit.wrapped("", 19, GameDefs.C_TEXT)
 	_text.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_text.add_theme_constant_override("line_spacing", 7)
 	bcol.add_child(_text)
@@ -257,6 +260,21 @@ func _build_textbox() -> void:
 	_caret.offset_bottom = -8.0
 	_caret.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	_box.add_child(_caret)
+
+
+## 依据文本行数收放对话框高度（矮文本约为一半高，长文本自动长高）
+func _fit_box_after_frame() -> void:
+	await get_tree().process_frame
+	await get_tree().process_frame
+	if _box == null or _text == null or _speaker == null:
+		return
+	var fs := float(_text.get_theme_font_size("font_size"))
+	var sf := float(_speaker.get_theme_font_size("font_size"))
+	var content := 14.0 + sf * 1.35 + 4.0 + fs * 1.45 * float(_text.get_line_count())
+	var h := clampf(content, BOX_H_MIN, BOX_H_MAX)
+	var tw := create_tween()
+	tw.tween_property(_box, "offset_top", -16.0 - h, 0.18)\
+		.set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
 
 
 func _build_choice_layer() -> void:
@@ -512,12 +530,13 @@ func _show_text(nd: Dictionary, ntype: String) -> void:
 
 	_full = String(nd.get("text", ""))
 	_text.text = _full
+	_fit_box_after_frame()
 	_text.add_theme_color_override("font_color",
 		GameDefs.C_TEXT if ntype == "dialogue" else Color("#cfe4f2"))
 	var gs_t := get_node_or_null("/root/GameState")
 	var fscale := float(gs_t.font_scale) if gs_t != null else 1.0
-	_text.add_theme_font_size_override("font_size", int(round(21.0 * fscale)))
-	_speaker.add_theme_font_size_override("font_size", int(round(19.0 * fscale)))
+	_text.add_theme_font_size_override("font_size", int(round(20.0 * fscale)))
+	_speaker.add_theme_font_size_override("font_size", int(round(17.0 * fscale)))
 	_typed = 0.0
 	_typing = true
 	_advance_ready = false
@@ -959,6 +978,7 @@ func _toast_error(msg: String) -> void:
 	_speaker.text = "系统"
 	_speaker.add_theme_color_override("font_color", GameDefs.C_DANGER)
 	_text.text = msg
+	_fit_box_after_frame()
 	_text.visible_characters = -1
 	_typing = false
 	_advance_ready = true

@@ -78,9 +78,11 @@ func _build() -> void:
 
 
 func _build_row(key: String) -> Control:
-	var row := UiKit.hbox(6)
-	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	var d: Dictionary = GameDefs.STATS[key]
+	var row := UiKit.hbox(6)
+	# PASS：允许鼠标悬浮，悬浮时显示该数值的含义提示
+	row.mouse_filter = Control.MOUSE_FILTER_PASS
+	row.tooltip_text = "%s：%s" % [String(d.get("label", key)), String(d.get("hint", ""))]
 	var col: Color = d.get("color", GameDefs.C_ICE)
 
 	var name_l := UiKit.label(String(d.get("label", key)), 13, GameDefs.C_MUTED)
